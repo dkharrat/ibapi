@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "algotrader_ibapi"
+version = "10.30.01"
+description="Python IB API"
+authors = ["IBG LLC <dnastase@interactivebrokers.com>"]
+readme = "README.md"
+repository = "https://interactivebrokers.github.io/tws-api"
+license = "IB API Non-Commercial License or the IB API Commercial License"
+include = ["ibapi/**/*"]
+packages = [{include = "ibapi"}]
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
