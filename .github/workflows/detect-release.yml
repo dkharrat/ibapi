@@ -6,14 +6,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  detect-release:
+  update-branch:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      build_version: ${{ steps.version.outputs.build_version }}
+      has_update: ${{ steps.check-update.outputs.has_update }}
     steps:
       - uses: actions/checkout@v5.0.0
-
+  
       - name: Get Latest Version
         id: version
         run: |
@@ -24,52 +27,112 @@ jobs:
           echo "file_url=$file_url" >> $GITHUB_OUTPUT
           echo "file_name=$file_name" >> $GITHUB_OUTPUT
           echo "build_version=$build_version" >> $GITHUB_OUTPUT
-
+  
       - name: Check if there is an update
         id: check-update
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release list > /tmp/ibapi-releases
-          if grep -qF '${{ steps.version.outputs.build_version }}' /tmp/ibapi-releases
-          then
+          version="${{ steps.version.outputs.build_version }}"
+  
+          # Check if release already exists
+          if gh release view "ibapi-stable@$version" > /dev/null 2>&1; then
             echo "has_update=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_update=true" >> $GITHUB_OUTPUT
+            exit 0
           fi
-
+  
+          # Check if code already updated in pyproject.toml (PR merged but release failed)
+          if grep -q "version = \"$version\"" pyproject.toml; then
+            echo "has_update=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+  
+          echo "has_update=true" >> $GITHUB_OUTPUT
+  
       - name: Download
         if: ${{ steps.check-update.outputs.has_update == 'true' }}
         run: |
           curl -sSL "${{ steps.version.outputs.file_url }}" --output "/tmp/${{ steps.version.outputs.file_name }}"
-
+  
       - name: Extract and Move
         if: ${{ steps.check-update.outputs.has_update == 'true' }}
         run: |
           unzip -o "/tmp/${{ steps.version.outputs.file_name }}" -d /tmp
           rsync -a /tmp/IBJts/source/pythonclient/ ./
           sed -i 's/version = "[^"]*"/version = "'"${{ steps.version.outputs.build_version }}"'"/' pyproject.toml
-
-      - name: Create release
+  
+      - name: Create or Update PR
+        id: create-pr
         if: ${{ steps.check-update.outputs.has_update == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create 'ibapi-stable@${{ steps.version.outputs.build_version }}' \
-            -t 'IB API Stable ${{ steps.version.outputs.build_version }}' \
-            -n 'IB API Stable ${{ steps.version.outputs.build_version }} release files'
-
-      - name: Create PR
-        if: ${{ steps.check-update.outputs.has_update == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          t_branch='update-stable-to-${{ steps.version.outputs.build_version }}'
+          t_branch="update-stable-to-${{ steps.version.outputs.build_version }}"
+  
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git pull
-          git checkout -b "$t_branch" origin/main
+          git fetch origin
+  
+          # Reuse branch if it already exists
+          if git ls-remote --exit-code origin "$t_branch"; then
+            git checkout "$t_branch"
+          else
+            git checkout -b "$t_branch" origin/main
+          fi
+  
           git add -A
-          git commit -m 'Update Stable to `${{ steps.version.outputs.build_version }}`'
-          git push --set-upstream origin "$t_branch"
-          gh pr create --base main --fill
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Stable to ${{ steps.version.outputs.build_version }}"
+            git push --set-upstream origin "$t_branch"
+          fi
+  
+          # Reuse PR if it already exists
+          pr_url=$(gh pr list --head "$t_branch" --json url --jq '.[0].url')
+          if [ -z "$pr_url" ]; then
+            pr_url=$(gh pr create --base main --fill --head "$t_branch")
+          fi
+  
+          echo "pr_url=$pr_url" >> $GITHUB_OUTPUT
+  
+      - name: Auto-merge PR
+        if: ${{ steps.check-update.outputs.has_update == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ steps.create-pr.outputs.pr_url }}" --squash --delete-branch --admin || \
+          echo "PR already merged"
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: update-branch
+    if: ${{ needs.update-branch.outputs.has_update == 'true' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Set variables
+        run: |
+          BUILD_VERSION="${{ needs.update-branch.outputs.build_version }}"
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+  
+      - name: Create release if not exists
+        run: |
+          set -e
+          TAG="ibapi-stable@$BUILD_VERSION"
+  
+          # Check if release already exists
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists. Skipping creation."
+            exit 0
+          fi
+  
+          # Create the release
+          gh release create "$TAG" \
+            -t "IB API Stable $BUILD_VERSION" \
+            -n "IB API Stable $BUILD_VERSION release files"
+  
+      - name: Update release notes if needed
+        run: |
+          TAG="ibapi-stable@$BUILD_VERSION"
+          gh release edit "$TAG" --notes "Automated update for version $TAG"
