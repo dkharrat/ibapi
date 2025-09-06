@@ -15,6 +15,7 @@ jobs:
       pull-requests: write
     outputs:
       build_version: ${{ steps.version.outputs.build_version }}
+      channel: ${{ steps.version.outputs.channel }}
       has_update: ${{ steps.check-update.outputs.has_update }}
     steps:
       - uses: actions/checkout@v5.0.0
@@ -26,9 +27,11 @@ jobs:
           file_url=https://$(echo "$response" | grep -oP '(interactivebrokers.*twsapi_macunix.*zip)(?=.*${{ inputs.channel }})')
           file_name=$(echo "$file_url" | grep -oP 'twsapi_macunix.*.zip')
           build_version=$(echo "$file_url" | grep -oP '(?<=twsapi_macunix.).*(?=.zip)' | sed 's/^\([0-9][0-9]\)\(.*\)$/\1.\2/')
+          channel="$(echo "${{ inputs.channel }}" | tr '[:upper:]' '[:lower:]')"
           echo "file_url=$file_url" >> $GITHUB_OUTPUT
           echo "file_name=$file_name" >> $GITHUB_OUTPUT
           echo "build_version=$build_version" >> $GITHUB_OUTPUT
+          echo "channel=$channel" >> $GITHUB_OUTPUT
   
       - name: Check if there is an update
         id: check-update
@@ -38,7 +41,7 @@ jobs:
           version="${{ steps.version.outputs.build_version }}"
   
           # Check if release already exists
-          if gh release view "ibapi-stable@$version" > /dev/null 2>&1; then
+          if gh release view "ibapi-${{ steps.version.outputs.channel }}@$version" > /dev/null 2>&1; then
             echo "has_update=false" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -69,7 +72,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          t_branch="update-stable-to-${{ steps.version.outputs.build_version }}"
+          t_branch="update-release-to-${{ steps.version.outputs.build_version }}"
   
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -86,7 +89,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update Stable to ${{ steps.version.outputs.build_version }}"
+            git commit -m "Update release to ${{ steps.version.outputs.channel }}-${{ steps.version.outputs.build_version }}"
             git push --set-upstream origin "$t_branch"
           fi
   
@@ -123,7 +126,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          TAG="ibapi-stable@$BUILD_VERSION"
+          TAG="ibapi-${{ needs.update-branch.outputs.channel }}@$BUILD_VERSION"
   
           # Check if release already exists
           if gh release view "$TAG" > /dev/null 2>&1; then
@@ -133,12 +136,12 @@ jobs:
   
           # Create the release
           gh release create "$TAG" \
-            -t "IB API Stable $BUILD_VERSION" \
-            -n "IB API Stable $BUILD_VERSION release files"
+            -t "IB API ${{ needs.update-branch.outputs.channel }} $BUILD_VERSION" \
+            -n "IB API ${{ needs.update-branch.outputs.channel }} $BUILD_VERSION release files"
   
       - name: Update release notes if needed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="ibapi-stable@$BUILD_VERSION"
+          TAG="ibapi-${{ needs.update-branch.outputs.channel }}@$BUILD_VERSION"
           gh release edit "$TAG" --notes "Automated update for version $TAG"
