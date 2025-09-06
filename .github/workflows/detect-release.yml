@@ -115,6 +115,8 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v5.0.0
+
       - name: Set variables
         run: |
           BUILD_VERSION="${{ needs.update-branch.outputs.build_version }}"
