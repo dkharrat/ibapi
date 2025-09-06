@@ -119,6 +119,8 @@ jobs:
           echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
   
       - name: Create release if not exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           TAG="ibapi-stable@$BUILD_VERSION"
@@ -135,6 +137,8 @@ jobs:
             -n "IB API Stable $BUILD_VERSION release files"
   
       - name: Update release notes if needed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="ibapi-stable@$BUILD_VERSION"
           gh release edit "$TAG" --notes "Automated update for version $TAG"
