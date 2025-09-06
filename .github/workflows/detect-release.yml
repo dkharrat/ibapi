@@ -1,9 +1,11 @@
 name: Detect IB API Release
 
 on:
-  schedule:
-    - cron: "0 8 * * *"
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      channel:
+        required: true
+        type: string
 
 jobs:
   update-branch:
@@ -21,7 +23,7 @@ jobs:
         id: version
         run: |
           response=$(curl -s https://interactivebrokers.github.io)
-          file_url=https://$(echo "$response" | grep -oP '(interactivebrokers.*twsapi_macunix.*zip)(?=.*Stable)')
+          file_url=https://$(echo "$response" | grep -oP '(interactivebrokers.*twsapi_macunix.*zip)(?=.*${{ inputs.channel }})')
           file_name=$(echo "$file_url" | grep -oP 'twsapi_macunix.*.zip')
           build_version=$(echo "$file_url" | grep -oP '(?<=twsapi_macunix.).*(?=.zip)' | sed 's/^\([0-9][0-9]\)\(.*\)$/\1.\2/')
           echo "file_url=$file_url" >> $GITHUB_OUTPUT
