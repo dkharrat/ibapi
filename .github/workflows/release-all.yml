@@ -1,5 +1,5 @@
 # .github/workflows/release-all.yml
-name: Deploy
+name: Create Releases
 
 on:
   schedule:
@@ -21,5 +21,5 @@ jobs:
       contents: write
       pull-requests: write
     with:
-      environment: Latest
+      channel: Latest
     needs: stable
