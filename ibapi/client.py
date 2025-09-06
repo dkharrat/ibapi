@@ -27,7 +27,28 @@ from ibapi.errors import (
     BAD_LENGTH,
     UPDATE_TWS,
     FA_PROFILE_NOT_SUPPORTED,
-    BAD_MESSAGE,
+    ALREADY_CONNECTED, FAIL_SEND_REQMKT, FAIL_SEND_CANMKT,
+    FAIL_SEND_ACCT, FAIL_SEND_EXEC, FAIL_SEND_ORDER,
+    FAIL_SEND_CORDER, FAIL_SEND_OORDER, FAIL_SEND_REQCONTRACT, FAIL_SEND_REQMKTDEPTH, FAIL_SEND_CANMKTDEPTH,
+    FAIL_SEND_SERVER_LOG_LEVEL, FAIL_SEND_FA_REQUEST, FAIL_SEND_FA_REPLACE, FAIL_SEND_REQSCANNER, FAIL_SEND_CANSCANNER,
+    FAIL_SEND_REQSCANNERPARAMETERS, FAIL_SEND_REQHISTDATA, FAIL_SEND_CANHISTDATA, FAIL_SEND_REQRTBARS,
+    FAIL_SEND_CANRTBARS, FAIL_SEND_REQCURRTIME, FAIL_SEND_REQFUNDDATA, FAIL_SEND_CANFUNDDATA,
+    FAIL_SEND_REQCALCIMPLIEDVOLAT, FAIL_SEND_REQCALCOPTIONPRICE, FAIL_SEND_CANCALCIMPLIEDVOLAT,
+    FAIL_SEND_CANCALCOPTIONPRICE, FAIL_SEND_REQGLOBALCANCEL, FAIL_SEND_REQMARKETDATATYPE, FAIL_SEND_REQPOSITIONS,
+    FAIL_SEND_CANPOSITIONS, FAIL_SEND_REQACCOUNTDATA, FAIL_SEND_CANACCOUNTDATA, FAIL_SEND_VERIFYREQUEST,
+    FAIL_SEND_VERIFYMESSAGE, FAIL_SEND_QUERYDISPLAYGROUPS, FAIL_SEND_SUBSCRIBETOGROUPEVENTS,
+    FAIL_SEND_UPDATEDISPLAYGROUP, FAIL_SEND_UNSUBSCRIBEFROMGROUPEVENTS, FAIL_SEND_STARTAPI,
+    FAIL_SEND_VERIFYANDAUTHREQUEST, FAIL_SEND_VERIFYANDAUTHMESSAGE, FAIL_SEND_REQPOSITIONSMULTI,
+    FAIL_SEND_CANPOSITIONSMULTI, FAIL_SEND_REQACCOUNTUPDATESMULTI, FAIL_SEND_CANACCOUNTUPDATESMULTI,
+    FAIL_SEND_REQSECDEFOPTPARAMS, FAIL_SEND_REQSOFTDOLLARTIERS, FAIL_SEND_REQFAMILYCODES, FAIL_SEND_REQMATCHINGSYMBOLS,
+    FAIL_SEND_REQMKTDEPTHEXCHANGES, FAIL_SEND_REQSMARTCOMPONENTS, FAIL_SEND_REQNEWSPROVIDERS, FAIL_SEND_REQNEWSARTICLE,
+    FAIL_SEND_REQHISTORICALNEWS, FAIL_SEND_REQHEADTIMESTAMP, FAIL_SEND_REQHISTOGRAMDATA, FAIL_SEND_CANCELHISTOGRAMDATA,
+    FAIL_SEND_CANCELHEADTIMESTAMP, FAIL_SEND_REQMARKETRULE, FAIL_SEND_REQPNL,
+    FAIL_SEND_CANCELPNL, FAIL_SEND_REQPNLSINGLE, FAIL_SEND_CANCELPNLSINGLE,
+    FAIL_SEND_REQHISTORICALTICKS, FAIL_SEND_REQTICKBYTICKDATA, FAIL_SEND_CANCELTICKBYTICKDATA,
+    FAIL_SEND_REQCOMPLETEDORDERS, FAIL_SEND_REQ_WSH_META_DATA, FAIL_SEND_CAN_WSH_META_DATA,
+    FAIL_SEND_REQ_WSH_EVENT_DATA, FAIL_SEND_CAN_WSH_EVENT_DATA, FAIL_SEND_REQ_USER_INFO,
+    FAIL_SEND_REQCURRTIMEINMILLIS,
 )
 from ibapi.execution import ExecutionFilter
 from ibapi.message import OUT
@@ -142,6 +163,15 @@ from ibapi.errors import INVALID_SYMBOL
 from ibapi.utils import isAsciiPrintable
 from ibapi.common import PROTOBUF_MSG_ID
 from ibapi.client_utils import createExecutionRequestProto, createPlaceOrderRequestProto, createCancelOrderRequestProto, createGlobalCancelRequestProto
+from ibapi.client_utils import createAllOpenOrdersRequestProto, createAutoOpenOrdersRequestProto, createOpenOrdersRequestProto, createCompletedOrdersRequestProto
+from ibapi.client_utils import createContractDataRequestProto, createMarketDataTypeRequestProto
+from ibapi.client_utils import createMarketDataRequestProto, createMarketDepthRequestProto, createCancelMarketDataProto, createCancelMarketDepthProto
+from ibapi.client_utils import createAccountSummaryRequestProto, createCancelAccountSummaryRequestProto, createManagedAccountsRequestProto
+from ibapi.client_utils import createAccountDataRequestProto, createPositionsRequestProto, createCancelPositionsRequestProto
+from ibapi.client_utils import createPositionsMultiRequestProto, createCancelPositionsMultiRequestProto, createAccountUpdatesMultiRequestProto, createCancelAccountUpdatesMultiRequestProto
+from ibapi.client_utils import createHistoricalDataRequestProto, createCancelHistoricalDataProto, createRealTimeBarsRequestProto, createCancelRealTimeBarsProto
+from ibapi.client_utils import createHeadTimestampRequestProto, createCancelHeadTimestampProto, createHistogramDataRequestProto, createCancelHistogramDataProto
+from ibapi.client_utils import createHistoricalTicksRequestProto, createTickByTickRequestProto, createCancelTickByTickProto
 
 from ibapi.protobuf.ComboLeg_pb2 import ComboLeg as ComboLegProto
 from ibapi.protobuf.ExecutionFilter_pb2 import ExecutionFilter as ExecutionFilterProto
@@ -149,6 +179,37 @@ from ibapi.protobuf.ExecutionRequest_pb2 import ExecutionRequest as ExecutionReq
 from ibapi.protobuf.PlaceOrderRequest_pb2 import PlaceOrderRequest as PlaceOrderRequestProto
 from ibapi.protobuf.CancelOrderRequest_pb2 import CancelOrderRequest as CancelOrderRequestProto
 from ibapi.protobuf.GlobalCancelRequest_pb2 import GlobalCancelRequest as GlobalCancelRequestProto
+from ibapi.protobuf.AllOpenOrdersRequest_pb2 import AllOpenOrdersRequest as AllOpenOrdersRequestProto
+from ibapi.protobuf.AutoOpenOrdersRequest_pb2 import AutoOpenOrdersRequest as AutoOpenOrdersRequestProto
+from ibapi.protobuf.OpenOrdersRequest_pb2 import OpenOrdersRequest as OpenOrdersRequestProto
+from ibapi.protobuf.CompletedOrdersRequest_pb2 import CompletedOrdersRequest as CompletedOrdersRequestProto
+from ibapi.protobuf.ContractDataRequest_pb2 import ContractDataRequest as ContractDataRequestProto
+from ibapi.protobuf.MarketDataRequest_pb2 import MarketDataRequest as MarketDataRequestProto
+from ibapi.protobuf.CancelMarketData_pb2 import CancelMarketData as CancelMarketDataProto
+from ibapi.protobuf.MarketDepthRequest_pb2 import MarketDepthRequest as MarketDepthRequestProto
+from ibapi.protobuf.CancelMarketDepth_pb2 import CancelMarketDepth as CancelMarketDepthProto
+from ibapi.protobuf.MarketDataTypeRequest_pb2 import MarketDataTypeRequest as MarketDataTypeRequestProto
+from ibapi.protobuf.AccountDataRequest_pb2 import AccountDataRequest as AccountDataRequestProto
+from ibapi.protobuf.ManagedAccountsRequest_pb2 import ManagedAccountsRequest as ManagedAccountsRequestProto
+from ibapi.protobuf.PositionsRequest_pb2 import PositionsRequest as PositionsRequestProto
+from ibapi.protobuf.AccountSummaryRequest_pb2 import AccountSummaryRequest as AccountSummaryRequestProto
+from ibapi.protobuf.CancelAccountSummary_pb2 import CancelAccountSummary as CancelAccountSummaryProto
+from ibapi.protobuf.CancelPositions_pb2 import CancelPositions as CancelPositionsProto
+from ibapi.protobuf.PositionsMultiRequest_pb2 import PositionsMultiRequest as PositionsMultiRequestProto
+from ibapi.protobuf.CancelPositionsMulti_pb2 import CancelPositionsMulti as CancelPositionsMultiProto
+from ibapi.protobuf.AccountUpdatesMultiRequest_pb2 import AccountUpdatesMultiRequest as AccountUpdatesMultiRequestProto
+from ibapi.protobuf.CancelAccountUpdatesMulti_pb2 import CancelAccountUpdatesMulti as CancelAccountUpdatesMultiProto
+from ibapi.protobuf.HistoricalDataRequest_pb2 import HistoricalDataRequest as HistoricalDataRequestProto
+from ibapi.protobuf.RealTimeBarsRequest_pb2 import RealTimeBarsRequest as RealTimeBarsRequestProto
+from ibapi.protobuf.HeadTimestampRequest_pb2 import HeadTimestampRequest as HeadTimestampRequestProto
+from ibapi.protobuf.HistogramDataRequest_pb2 import HistogramDataRequest as HistogramDataRequestProto
+from ibapi.protobuf.HistoricalTicksRequest_pb2 import HistoricalTicksRequest as HistoricalTicksRequestProto
+from ibapi.protobuf.TickByTickRequest_pb2 import TickByTickRequest as TickByTickRequestProto
+from ibapi.protobuf.CancelHistoricalData_pb2 import CancelHistoricalData as CancelHistoricalDataProto
+from ibapi.protobuf.CancelRealTimeBars_pb2 import CancelRealTimeBars as CancelRealTimeBarsProto
+from ibapi.protobuf.CancelHeadTimestamp_pb2 import CancelHeadTimestamp as CancelHeadTimestampProto
+from ibapi.protobuf.CancelHistogramData_pb2 import CancelHistogramData as CancelHistogramDataProto
+from ibapi.protobuf.CancelTickByTick_pb2 import CancelTickByTick as CancelTickByTickProto
 
 # TODO: use pylint
 
@@ -156,9 +217,7 @@ logger = logging.getLogger(__name__)
 
 
 class EClient(object):
-    (DISCONNECTED, CONNECTING, CONNECTED, REDIRECT) = range(4)
-
-    # TODO: support redirect !!
+    (DISCONNECTED, CONNECTING, CONNECTED) = range(3)
 
     def __init__(self, wrapper):
         self.msg_queue = queue.Queue()
@@ -239,6 +298,14 @@ class EClient(object):
                 self.optCapab.encode(sys.stdout.encoding, errors="ignore").decode(sys.stdout.encoding),
             )
 
+    def checkConnected(self):
+        if self.isConnected() :
+            raise ClientException(
+                ALREADY_CONNECTED.code(),
+                ALREADY_CONNECTED.msg(),
+                ""
+            )
+
     def useProtoBuf(self, msgId: int) -> bool:
         unifiedVersion = PROTOBUF_MSG_IDS.get(msgId)
         return unifiedVersion is not None and unifiedVersion <= self.serverVersion()
@@ -261,11 +328,14 @@ class EClient(object):
             if self.serverVersion() >= MIN_SERVER_VER_OPTIONAL_CAPABILITIES:
                 msg += make_field(self.optCapab if self.optCapab is not None else "")
 
+            self.sendMsg(OUT.START_API, msg)
+
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.START_API, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_STARTAPI.code(), FAIL_SEND_STARTAPI.msg() + str(ex))
+            return
 
     def connect(self, host, port, clientId):
         """This function must be called before any other. There is no
@@ -286,6 +356,12 @@ class EClient(object):
             self.validateInvalidSymbols(host)
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+
+        try:
+            self.checkConnected()
+        except ClientException as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg)
             return
 
         try:
@@ -464,11 +540,15 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = f"{make_field(VERSION)}"
+            msg = f"{make_field(VERSION)}"
 
-        self.sendMsg(OUT.REQ_CURRENT_TIME, msg)
+            self.sendMsg(OUT.REQ_CURRENT_TIME, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQCURRTIME.code(), FAIL_SEND_REQCURRTIME.msg() + str(ex))
+            return
 
     def serverVersion(self):
         """Returns the version of the TWS instance to which the API application is connected."""
@@ -485,11 +565,14 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = f"{make_field(VERSION)}{make_field(logLevel)}"
-
-        self.sendMsg(OUT.SET_SERVER_LOGLEVEL, msg)
+            msg = f"{make_field(VERSION)}{make_field(logLevel)}"
+            self.sendMsg(OUT.SET_SERVER_LOGLEVEL, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_SERVER_LOG_LEVEL.code(), FAIL_SEND_SERVER_LOG_LEVEL.msg() + str(ex))
+            return
 
     def twsConnectionTime(self):
         """Returns the time the API application made a connection to TWS."""
@@ -529,6 +612,11 @@ class EClient(object):
             regulatory snapshots are available for 0.01 USD each.
         mktDataOptions:TagValueList - For internal use only.
             Use default value XYZ."""
+
+        if (self.useProtoBuf(OUT.REQ_MKT_DATA)):
+            marketDataRequestProto = createMarketDataRequestProto(reqId, contract, genericTickList, snapshot, regulatorySnapshot, mktDataOptions)
+            self.reqMarketDataProtoBuf(marketDataRequestProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -649,12 +737,38 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_MKT_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQMKT.code(), FAIL_SEND_REQMKT.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_MKT_DATA, msg)
+    def reqMarketDataProtoBuf(self, marketDataRequestProto: MarketDataRequestProto):
+        if marketDataRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = marketDataRequestProto.reqId if marketDataRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = marketDataRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_MKT_DATA + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQMKT.code(), FAIL_SEND_REQMKT.msg() + str(ex))
+            return
 
     def cancelMktData(self, reqId: TickerId):
         """After calling this function, market data for the specified id
@@ -663,23 +777,54 @@ class EClient(object):
         reqId: TickerId - The ID that was specified in the call to
             reqMktData()."""
 
+        if (self.useProtoBuf(OUT.CANCEL_MKT_DATA)):
+            cancelMarketDataProto = createCancelMarketDataProto(reqId)
+            self.cancelMarketDataProtoBuf(cancelMarketDataProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 2
+        try:
+            VERSION = 2
 
-        # send req mkt data msg
-        flds = []
-        flds += [
-            make_field(VERSION),
-            make_field(reqId),
-        ]
+            # send req mkt data msg
+            flds = []
+            flds += [
+                make_field(VERSION),
+                make_field(reqId),
+            ]
 
-        msg = "".join(flds)
-        self.sendMsg(OUT.CANCEL_MKT_DATA, msg)
+            msg = "".join(flds)
+            self.sendMsg(OUT.CANCEL_MKT_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANMKT.code(), FAIL_SEND_CANMKT.msg() + str(ex))
+            return
+
+
+    def cancelMarketDataProtoBuf(self, cancelMarketDataProto: CancelMarketDataProto):
+        if cancelMarketDataProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = cancelMarketDataProto.reqId if cancelMarketDataProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelMarketDataProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_MKT_DATA + PROTOBUF_MSG_ID, serializedString)
+
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANMKT.code(), FAIL_SEND_CANMKT.msg() + str(ex))
+            return
 
     def reqMarketDataType(self, marketDataType: int):
         """The API can receive frozen market data from Trader
@@ -692,6 +837,11 @@ class EClient(object):
 
         marketDataType:int - 1 for real-time streaming market data or 2 for
             frozen market data"""
+
+        if (self.useProtoBuf(OUT.REQ_MARKET_DATA_TYPE)):
+            marketDataTypeRequestProto = createMarketDataTypeRequestProto(marketDataType)
+            self.reqMarketDataTypeProtoBuf(marketDataTypeRequestProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -708,17 +858,40 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        # send req mkt data msg
-        flds = []
-        flds += [
-            make_field(VERSION),
-            make_field(marketDataType),
-        ]
+            # send req mkt data msg
+            flds = []
+            flds += [
+                make_field(VERSION),
+                make_field(marketDataType),
+            ]
 
-        msg = "".join(flds)
-        self.sendMsg(OUT.REQ_MARKET_DATA_TYPE, msg)
+            msg = "".join(flds)
+            self.sendMsg(OUT.REQ_MARKET_DATA_TYPE, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQMARKETDATATYPE.code(), FAIL_SEND_REQMARKETDATATYPE.msg() + str(ex))
+            return
+
+    def reqMarketDataTypeProtoBuf(self, marketDataTypeRequestProto: MarketDataTypeRequestProto):
+        if marketDataTypeRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = marketDataTypeRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_MARKET_DATA_TYPE + PROTOBUF_MSG_ID, serializedString)
+
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQMARKETDATATYPE.code(), FAIL_SEND_REQMARKETDATATYPE.msg() + str(ex))
+            return
 
     def reqSmartComponents(self, reqId: int, bboExchange: str):
         self.logRequest(current_fn_name(), vars())
@@ -741,12 +914,14 @@ class EClient(object):
                 make_field(reqId)
                 + make_field(bboExchange)
             )
+            self.sendMsg(OUT.REQ_SMART_COMPONENTS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_SMART_COMPONENTS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQSMARTCOMPONENTS.code(), FAIL_SEND_REQSMARTCOMPONENTS.msg() + str(ex))
+            return
 
     def reqMarketRule(self, marketRuleId: int):
         self.logRequest(current_fn_name(), vars())
@@ -764,9 +939,12 @@ class EClient(object):
             )
             return
 
-        msg = make_field(marketRuleId)
-
-        self.sendMsg(OUT.REQ_MARKET_RULE, msg)
+        try:
+            msg = make_field(marketRuleId)
+            self.sendMsg(OUT.REQ_MARKET_RULE, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQMARKETRULE.code(), FAIL_SEND_REQMARKETRULE.msg() + str(ex))
+            return
 
     def reqTickByTickData(
         self,
@@ -776,6 +954,11 @@ class EClient(object):
         numberOfTicks: int,
         ignoreSize: bool,
     ):
+        if self.useProtoBuf(OUT.REQ_TICK_BY_TICK_DATA):
+            tickByTickRequestProto = createTickByTickRequestProto(reqId, contract, tickType, numberOfTicks, ignoreSize)
+            self.reqTickByTickDataProtoBuf(tickByTickRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -822,14 +1005,44 @@ class EClient(object):
 
             if self.serverVersion() >= MIN_SERVER_VER_TICK_BY_TICK_IGNORE_SIZE:
                 msg += make_field(numberOfTicks) + make_field(ignoreSize)
-
+            self.sendMsg(OUT.REQ_TICK_BY_TICK_DATA, msg)
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQTICKBYTICKDATA.code(), FAIL_SEND_REQTICKBYTICKDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_TICK_BY_TICK_DATA, msg)
+    def reqTickByTickDataProtoBuf(self, tickByTickRequestProto: TickByTickRequestProto):
+        if tickByTickRequestProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = tickByTickRequestProto.reqId if tickByTickRequestProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = tickByTickRequestProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.REQ_TICK_BY_TICK_DATA + PROTOBUF_MSG_ID, serializedString)
+        
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQTICKBYTICKDATA.code(), FAIL_SEND_REQTICKBYTICKDATA.msg() + str(ex))
+            return
 
     def cancelTickByTickData(self, reqId: int):
+        if self.useProtoBuf(OUT.CANCEL_TICK_BY_TICK_DATA):
+            cancelTickByTickProto = createCancelTickByTickProto(reqId)
+            self.cancelTickByTickProtoBuf(cancelTickByTickProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -845,9 +1058,33 @@ class EClient(object):
             )
             return
 
-        msg = make_field(reqId)
+        try:
+            msg = make_field(reqId)
+            self.sendMsg(OUT.CANCEL_TICK_BY_TICK_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCELTICKBYTICKDATA.code(), FAIL_SEND_CANCELTICKBYTICKDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.CANCEL_TICK_BY_TICK_DATA, msg)
+    def cancelTickByTickProtoBuf(self, cancelTickByTickProto: CancelTickByTickProto):
+        if cancelTickByTickProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = cancelTickByTickProto.reqId if cancelTickByTickProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = cancelTickByTickProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.CANCEL_TICK_BY_TICK_DATA + PROTOBUF_MSG_ID, serializedString)
+        
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCELTICKBYTICKDATA.code(), FAIL_SEND_CANCELTICKBYTICKDATA.msg() + str(ex))
+            return
 
     ##########################################################################
     # Options
@@ -926,19 +1163,21 @@ class EClient(object):
 
             if self.serverVersion() >= MIN_SERVER_VER_LINKING:
                 implVolOptStr = ""
-                tagValuesCount = len(implVolOptions) if implVolOptions else 0
                 if implVolOptions:
-                    for implVolOpt in implVolOptions:
-                        implVolOptStr += str(implVolOpt)
-                flds += [make_field(tagValuesCount), make_field(implVolOptStr)]
+                    raise NotImplementedError("not supported")
+                flds += [
+                    make_field(implVolOptStr)
+                ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_CALC_IMPLIED_VOLAT, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_CALC_IMPLIED_VOLAT, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQCALCIMPLIEDVOLAT.code(), FAIL_SEND_REQCALCIMPLIEDVOLAT.msg() + str(ex))
+            return
 
     def cancelCalculateImpliedVolatility(self, reqId: TickerId):
         """Call this function to cancel a request to calculate
@@ -962,14 +1201,17 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
-
-        self.sendMsg(OUT.CANCEL_CALC_IMPLIED_VOLAT, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.CANCEL_CALC_IMPLIED_VOLAT, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCALCIMPLIEDVOLAT.code(), FAIL_SEND_CANCALCIMPLIEDVOLAT.msg() + str(ex))
+            return
 
     def calculateOptionPrice(
         self,
@@ -1043,19 +1285,21 @@ class EClient(object):
 
             if self.serverVersion() >= MIN_SERVER_VER_LINKING:
                 optPrcOptStr = ""
-                tagValuesCount = len(optPrcOptions) if optPrcOptions else 0
                 if optPrcOptions:
-                    for implVolOpt in optPrcOptions:
-                        optPrcOptStr += str(implVolOpt)
-                flds += [make_field(tagValuesCount), make_field(optPrcOptStr)]
+                    raise NotImplementedError("not supported")
+                flds += [
+                    make_field(optPrcOptStr)
+                ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_CALC_OPTION_PRICE, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_CALC_OPTION_PRICE, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQCALCOPTIONPRICE.code(), FAIL_SEND_REQCALCOPTIONPRICE.msg() + str(ex))
+            return
 
     def cancelCalculateOptionPrice(self, reqId: TickerId):
         """Call this function to cancel a request to calculate the option
@@ -1079,14 +1323,17 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
-
-        self.sendMsg(OUT.CANCEL_CALC_OPTION_PRICE, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.CANCEL_CALC_OPTION_PRICE, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCALCOPTIONPRICE.code(), FAIL_SEND_CANCALCOPTIONPRICE.msg() + str(ex))
+            return
 
     def exerciseOptions(
         self,
@@ -1218,12 +1465,14 @@ class EClient(object):
                 ]
 
             msg = "".join(fields)
+            self.sendMsg(OUT.EXERCISE_OPTIONS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.EXERCISE_OPTIONS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQMKT.code(), FAIL_SEND_REQMKT.msg() + str(ex))
+            return
 
     #########################################################################
     # Orders
@@ -2169,17 +2418,38 @@ class EClient(object):
                 flds.append(make_field(order.imbalanceOnly))
 
             msg = "".join(flds)
+            self.sendMsg(OUT.PLACE_ORDER, msg)
 
         except ClientException as ex:
             self.wrapper.error(orderId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.PLACE_ORDER, msg)
+        except Exception as ex:
+            self.wrapper.error(orderId, currentTimeMillis(), FAIL_SEND_ORDER.code(), FAIL_SEND_ORDER.msg() + str(ex))
+            return
 
     def placeOrderProtoBuf(self, placeOrderRequestProto: PlaceOrderRequestProto):
-        serializedString = placeOrderRequestProto.SerializeToString()
+        if placeOrderRequestProto is None:
+            return
 
-        self.sendMsgProtoBuf(OUT.PLACE_ORDER + PROTOBUF_MSG_ID, serializedString)
+        self.logRequest(current_fn_name(), vars())
+
+        orderId = placeOrderRequestProto.orderId if placeOrderRequestProto.HasField('orderId') else 0
+
+        if not self.isConnected():
+            self.wrapper.error(orderId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = placeOrderRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.PLACE_ORDER + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(orderId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(orderId, currentTimeMillis(), FAIL_SEND_ORDER.code(), FAIL_SEND_ORDER.msg() + str(ex))
+            return
 
     def cancelOrder(self, orderId: OrderId, orderCancel: OrderCancel):
         """Call this function to cancel an order.
@@ -2243,17 +2513,38 @@ class EClient(object):
                 flds += [make_field(orderCancel.manualOrderIndicator)]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.CANCEL_ORDER, msg)
 
         except ClientException as ex:
             self.wrapper.error(orderId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.CANCEL_ORDER, msg)
+        except Exception as ex:
+            self.wrapper.error(orderId, currentTimeMillis(), FAIL_SEND_CORDER.code(), FAIL_SEND_CORDER.msg() + str(ex))
+            return
 
     def cancelOrderProtoBuf(self, cancelOrderRequestProto: CancelOrderRequestProto):
-        serializedString = cancelOrderRequestProto.SerializeToString()
+        if cancelOrderRequestProto is None:
+            return
 
-        self.sendMsgProtoBuf(OUT.CANCEL_ORDER + PROTOBUF_MSG_ID, serializedString)
+        self.logRequest(current_fn_name(), vars())
+
+        orderId = cancelOrderRequestProto.orderId if cancelOrderRequestProto.HasField('orderId') else 0
+
+        if not self.isConnected():
+            self.wrapper.error(orderId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelOrderRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_ORDER + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(orderId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(orderId, currentTimeMillis(), FAIL_SEND_CORDER.code(), FAIL_SEND_CORDER.msg() + str(ex))
+            return
 
     def reqOpenOrders(self):
         """Call this function to request the open orders that were
@@ -2265,17 +2556,44 @@ class EClient(object):
         orderId will be generated. This association will persist over multiple
         API and TWS sessions."""
 
+        if (self.useProtoBuf(OUT.REQ_OPEN_ORDERS)):
+            openOrdersRequestProto = createOpenOrdersRequestProto()
+            self.reqOpenOrdersProtoBuf(openOrdersRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
+            msg = make_field(VERSION)
 
-        self.sendMsg(OUT.REQ_OPEN_ORDERS, msg)
+            self.sendMsg(OUT.REQ_OPEN_ORDERS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
+
+    def reqOpenOrdersProtoBuf(self, openOrdersRequestProto: OpenOrdersRequestProto):
+        if openOrdersRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = openOrdersRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_OPEN_ORDERS + PROTOBUF_MSG_ID, serializedString)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
 
     def reqAutoOpenOrders(self, bAutoBind: bool):
         """Call this function to request that newly created TWS orders
@@ -2289,20 +2607,46 @@ class EClient(object):
         associated with the client. If set to FALSE, no association will be
         made."""
 
+        if (self.useProtoBuf(OUT.REQ_AUTO_OPEN_ORDERS)):
+            autoOpenOrdersRequestProto = createAutoOpenOrdersRequestProto(bAutoBind)
+            self.reqAutoOpenOrdersProtoBuf(autoOpenOrdersRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(bAutoBind)
-        )
+            msg = (
+                make_field(VERSION)
+                + make_field(bAutoBind)
+            )
+            self.sendMsg(OUT.REQ_AUTO_OPEN_ORDERS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_AUTO_OPEN_ORDERS, msg)
+    def reqAutoOpenOrdersProtoBuf(self, autoOpenOrdersRequestProto: AutoOpenOrdersRequestProto):
+        if autoOpenOrdersRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = autoOpenOrdersRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_AUTO_OPEN_ORDERS + PROTOBUF_MSG_ID, serializedString)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
 
     def reqAllOpenOrders(self):
         """Call this function to request the open orders placed from all
@@ -2312,17 +2656,43 @@ class EClient(object):
         Note:  No association is made between the returned orders and the
         requesting client."""
 
+        if (self.useProtoBuf(OUT.REQ_ALL_OPEN_ORDERS)):
+            allOpenOrdersRequestProto = createAllOpenOrdersRequestProto()
+            self.reqAllOpenOrdersProtoBuf(allOpenOrdersRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
+            msg = make_field(VERSION)
+            self.sendMsg(OUT.REQ_ALL_OPEN_ORDERS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_ALL_OPEN_ORDERS, msg)
+    def reqAllOpenOrdersProtoBuf(self, allOpenOrdersRequestProto: AllOpenOrdersRequestProto):
+        if allOpenOrdersRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = allOpenOrdersRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_ALL_OPEN_ORDERS + PROTOBUF_MSG_ID, serializedString)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
 
     def reqGlobalCancel(self, orderCancel: OrderCancel):
         """Use this function to cancel all open orders globally. It
@@ -2365,17 +2735,36 @@ class EClient(object):
                 flds += [make_field(orderCancel.manualOrderIndicator)]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_GLOBAL_CANCEL, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_GLOBAL_CANCEL, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQGLOBALCANCEL.code(), FAIL_SEND_REQGLOBALCANCEL.msg() + str(ex))
+            return
 
     def reqGlobalCancelProtoBuf(self, globalCancelRequestProto: GlobalCancelRequestProto):
-        serializedString = globalCancelRequestProto.SerializeToString()
+        if globalCancelRequestProto is None:
+            return
 
-        self.sendMsgProtoBuf(OUT.REQ_GLOBAL_CANCEL + PROTOBUF_MSG_ID, serializedString)
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = globalCancelRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_GLOBAL_CANCEL + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQGLOBALCANCEL.code(), FAIL_SEND_REQGLOBALCANCEL.msg() + str(ex))
+            return
 
     def reqIds(self, numIds: int):
         """Call this function to request from TWS the next valid ID that
@@ -2392,11 +2781,14 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION) + make_field(numIds)
-
-        self.sendMsg(OUT.REQ_IDS, msg)
+            msg = make_field(VERSION) + make_field(numIds)
+            self.sendMsg(OUT.REQ_IDS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_CORDER.code(), FAIL_SEND_CORDER.msg() + str(ex))
+            return
 
     #########################################################################
     # Account and Portfolio
@@ -2412,6 +2804,10 @@ class EClient(object):
             receiving this information.
         acctCode:str -The account code for which to receive account and
             portfolio updates."""
+
+        if self.useProtoBuf(OUT.REQ_ACCT_DATA):
+            self.reqAccountUpdatesProtoBuf(createAccountDataRequestProto(subscribe, acctCode))
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -2430,12 +2826,36 @@ class EClient(object):
             ]  # srv v9 and above, the account code. This will only be used for FA clients
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_ACCT_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_ACCT.code(), FAIL_SEND_ACCT.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_ACCT_DATA, msg)
+    def reqAccountUpdatesProtoBuf(self, accountDataRequestProto: AccountDataRequestProto):
+        if accountDataRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = accountDataRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_ACCT_DATA + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_ACCT.code(), FAIL_SEND_ACCT.msg() + str(ex))
+            return
 
     def reqAccountSummary(self, reqId: int, groupName: str, tags: str):
         """Call this method to request and keep up to date the data that appears
@@ -2492,6 +2912,10 @@ class EClient(object):
             $LEDGER:ALL - Single flag to relay all cash balance tags* in all
             currencies."""
 
+        if self.useProtoBuf(OUT.REQ_ACCOUNT_SUMMARY):
+            self.reqAccountSummaryProtoBuf(createAccountSummaryRequestProto(reqId, groupName, tags))
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -2507,36 +2931,97 @@ class EClient(object):
                 + make_field(groupName)
                 + make_field(tags)
             )
+            self.sendMsg(OUT.REQ_ACCOUNT_SUMMARY, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQACCOUNTDATA.code(), FAIL_SEND_REQACCOUNTDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_ACCOUNT_SUMMARY, msg)
+    def reqAccountSummaryProtoBuf(self, accountSummaryRequestProto: AccountSummaryRequestProto):
+        if accountSummaryRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = accountSummaryRequestProto.reqId if accountSummaryRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = accountSummaryRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_ACCOUNT_SUMMARY + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQACCOUNTDATA.code(), FAIL_SEND_REQACCOUNTDATA.msg() + str(ex))
+            return
 
     def cancelAccountSummary(self, reqId: int):
         """Cancels the request for Account Window Summary tab data.
 
         reqId:int - The ID of the data request being canceled."""
 
+        if self.useProtoBuf(OUT.CANCEL_ACCOUNT_SUMMARY):
+            self.cancelAccountSummaryProtoBuf(createCancelAccountSummaryRequestProto(reqId))
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.CANCEL_ACCOUNT_SUMMARY, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANACCOUNTDATA.code(), FAIL_SEND_CANACCOUNTDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.CANCEL_ACCOUNT_SUMMARY, msg)
+    def cancelAccountSummaryProtoBuf(self, cancelAccountSummaryProto: CancelAccountSummaryProto):
+        if cancelAccountSummaryProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = cancelAccountSummaryProto.reqId if cancelAccountSummaryProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelAccountSummaryProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_ACCOUNT_SUMMARY + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANACCOUNTDATA.code(), FAIL_SEND_CANACCOUNTDATA.msg() + str(ex))
+            return
 
     def reqPositions(self):
         """Requests real-time position data for all accounts."""
 
+        if self.useProtoBuf(OUT.REQ_POSITIONS):
+            self.reqPositionsProtoBuf(createPositionsRequestProto())
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -2552,15 +3037,44 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
+            msg = make_field(VERSION)
+            self.sendMsg(OUT.REQ_POSITIONS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQPOSITIONS.code(), FAIL_SEND_REQPOSITIONS.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_POSITIONS, msg)
+    def reqPositionsProtoBuf(self, positionsRequestProto: PositionsRequestProto):
+        if positionsRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = positionsRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_POSITIONS + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQPOSITIONS.code(), FAIL_SEND_REQPOSITIONS.msg() + str(ex))
+            return
 
     def cancelPositions(self):
         """Cancels real-time position updates."""
 
+        if self.useProtoBuf(OUT.CANCEL_POSITIONS):
+            self.cancelPositionsProtoBuf(createCancelPositionsRequestProto())
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -2576,16 +3090,46 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
+            msg = make_field(VERSION)
 
-        self.sendMsg(OUT.CANCEL_POSITIONS, msg)
+            self.sendMsg(OUT.CANCEL_POSITIONS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_CANPOSITIONS.code(), FAIL_SEND_CANPOSITIONS.msg() + str(ex))
+            return
+
+    def cancelPositionsProtoBuf(self, cancelPositionsProto: CancelPositionsProto):
+        if cancelPositionsProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelPositionsProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_POSITIONS + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_CANPOSITIONS.code(), FAIL_SEND_CANPOSITIONS.msg() + str(ex))
+            return
 
     def reqPositionsMulti(self, reqId: int, account: str, modelCode: str):
         """Requests positions for account and/or model.
         Results are delivered via EWrapper.positionMulti() and
         EWrapper.positionMultiEnd()"""
+
+        if self.useProtoBuf(OUT.REQ_POSITIONS_MULTI):
+            self.reqPositionsMultiProtoBuf(createPositionsMultiRequestProto(reqId, account, modelCode))
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -2611,14 +3155,44 @@ class EClient(object):
                 + make_field(account)
                 + make_field(modelCode)
             )
+            self.sendMsg(OUT.REQ_POSITIONS_MULTI, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQPOSITIONSMULTI.code(), FAIL_SEND_REQPOSITIONSMULTI.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_POSITIONS_MULTI, msg)
+    def reqPositionsMultiProtoBuf(self, positionsMultiRequestProto: PositionsMultiRequestProto):
+        if positionsMultiRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = positionsMultiRequestProto.reqId if positionsMultiRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = positionsMultiRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_POSITIONS_MULTI + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQPOSITIONSMULTI.code(), FAIL_SEND_REQPOSITIONSMULTI.msg() + str(ex))
+            return
 
     def cancelPositionsMulti(self, reqId: int):
+        if self.useProtoBuf(OUT.CANCEL_POSITIONS_MULTI):
+            self.cancelPositionsMultiProtoBuf(createCancelPositionsMultiRequestProto(reqId))
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -2635,18 +3209,50 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
-        self.sendMsg(OUT.CANCEL_POSITIONS_MULTI, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.CANCEL_POSITIONS_MULTI, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANPOSITIONSMULTI.code(), FAIL_SEND_CANPOSITIONSMULTI.msg() + str(ex))
+            return
+
+    def cancelPositionsMultiProtoBuf(self, cancelPositionsMultiProto: CancelPositionsMultiProto):
+        if cancelPositionsMultiProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = cancelPositionsMultiProto.reqId if cancelPositionsMultiProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelPositionsMultiProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_POSITIONS_MULTI + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANPOSITIONSMULTI.code(), FAIL_SEND_CANPOSITIONSMULTI.msg() + str(ex))
+            return
 
     def reqAccountUpdatesMulti(
         self, reqId: int, account: str, modelCode: str, ledgerAndNLV: bool
     ):
         """Requests account updates for account and/or model."""
+
+        if self.useProtoBuf(OUT.REQ_ACCOUNT_UPDATES_MULTI):
+            self.reqAccountUpdatesMultiProtoBuf(createAccountUpdatesMultiRequestProto(reqId, account, modelCode, ledgerAndNLV))
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -2674,14 +3280,45 @@ class EClient(object):
                 + make_field(modelCode)
                 + make_field(ledgerAndNLV)
             )
+            self.sendMsg(OUT.REQ_ACCOUNT_UPDATES_MULTI, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQACCOUNTUPDATESMULTI.code(), FAIL_SEND_REQACCOUNTUPDATESMULTI.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_ACCOUNT_UPDATES_MULTI, msg)
+    def reqAccountUpdatesMultiProtoBuf(self, accountUpdatesMultiRequestProto: AccountUpdatesMultiRequestProto):
+        if accountUpdatesMultiRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = accountUpdatesMultiRequestProto.reqId if accountUpdatesMultiRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = accountUpdatesMultiRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_ACCOUNT_UPDATES_MULTI + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQACCOUNTUPDATESMULTI.code(), FAIL_SEND_REQACCOUNTUPDATESMULTI.msg() + str(ex))
+            return
 
     def cancelAccountUpdatesMulti(self, reqId: int):
+
+        if self.useProtoBuf(OUT.CANCEL_ACCOUNT_UPDATES_MULTI):
+            self.cancelAccountUpdatesMultiProtoBuf(createCancelAccountUpdatesMultiRequestProto(reqId))
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -2698,13 +3335,41 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
-        self.sendMsg(OUT.CANCEL_ACCOUNT_UPDATES_MULTI, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.CANCEL_ACCOUNT_UPDATES_MULTI, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANACCOUNTUPDATESMULTI.code(), FAIL_SEND_CANACCOUNTUPDATESMULTI.msg() + str(ex))
+            return
+
+    def cancelAccountUpdatesMultiProtoBuf(self, cancelAccountUpdatesMultiProto: CancelAccountUpdatesMultiProto):
+        if cancelAccountUpdatesMultiProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = cancelAccountUpdatesMultiProto.reqId if cancelAccountUpdatesMultiProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelAccountUpdatesMultiProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_ACCOUNT_UPDATES_MULTI + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANACCOUNTUPDATESMULTI.code(), FAIL_SEND_CANACCOUNTUPDATESMULTI.msg() + str(ex))
+            return
 
     #########################################################################
     # Daily PnL
@@ -2732,12 +3397,15 @@ class EClient(object):
                 + make_field(account)
                 + make_field(modelCode)
             )
+            self.sendMsg(OUT.REQ_PNL, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQPNL.code(), FAIL_SEND_REQPNL.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_PNL, msg)
 
     def cancelPnL(self, reqId: int):
         self.logRequest(current_fn_name(), vars())
@@ -2755,9 +3423,13 @@ class EClient(object):
             )
             return
 
-        msg = make_field(reqId)
+        try:
+            msg = make_field(reqId)
 
-        self.sendMsg(OUT.CANCEL_PNL, msg)
+            self.sendMsg(OUT.CANCEL_PNL, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCELPNL.code(), FAIL_SEND_CANCELPNL.msg() + str(ex))
+            return
 
     def reqPnLSingle(self, reqId: int, account: str, modelCode: str, conid: int):
         self.logRequest(current_fn_name(), vars())
@@ -2782,12 +3454,14 @@ class EClient(object):
                 + make_field(modelCode)
                 + make_field(conid)
             )
+            self.sendMsg(OUT.REQ_PNL_SINGLE, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_PNL_SINGLE, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQPNLSINGLE.code(), FAIL_SEND_REQPNLSINGLE.msg() + str(ex))
+            return
 
     def cancelPnLSingle(self, reqId: int):
         self.logRequest(current_fn_name(), vars())
@@ -2805,9 +3479,12 @@ class EClient(object):
             )
             return
 
-        msg = make_field(reqId)
-
-        self.sendMsg(OUT.CANCEL_PNL_SINGLE, msg)
+        try:
+            msg = make_field(reqId)
+            self.sendMsg(OUT.CANCEL_PNL_SINGLE, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCELPNLSINGLE.code(), FAIL_SEND_CANCELPNLSINGLE.msg() + str(ex))
+            return
 
     #########################################################################
     # Executions
@@ -2894,17 +3571,38 @@ class EClient(object):
                     ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_EXECUTIONS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_EXECUTIONS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_EXEC.code(), FAIL_SEND_EXEC.msg() + str(ex))
+            return
 
     def reqExecutionsProtoBuf(self, executionRequestProto: ExecutionRequestProto):
-        serializedString = executionRequestProto.SerializeToString()
+        if executionRequestProto is None:
+            return
 
-        self.sendMsgProtoBuf(OUT.REQ_EXECUTIONS + PROTOBUF_MSG_ID, serializedString)
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = executionRequestProto.reqId if executionRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = executionRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_EXECUTIONS + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_EXEC.code(), FAIL_SEND_EXEC.msg() + str(ex))
+            return
 
     #########################################################################
     # Contract Details
@@ -2919,6 +3617,11 @@ class EClient(object):
             make_fieldatched to requests if several requests are in process.
         contract:Contract - The summary description of the contract being looked
             up."""
+
+        if (self.useProtoBuf(OUT.REQ_CONTRACT_DATA)):
+            contractDataRequestProto = createContractDataRequestProto(reqId, contract)
+            self.reqContractDataProtoBuf(contractDataRequestProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -3028,12 +3731,38 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_CONTRACT_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQCONTRACT.code(), FAIL_SEND_REQCONTRACT.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_CONTRACT_DATA, msg)
+    def reqContractDataProtoBuf(self, contractDataRequestProto: ContractDataRequestProto):
+        if contractDataRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = contractDataRequestProto.reqId if contractDataRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = contractDataRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_CONTRACT_DATA + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQCONTRACT.code(), FAIL_SEND_REQCONTRACT.msg() + str(ex))
+            return
 
     #########################################################################
     # Market Depth
@@ -3056,7 +3785,11 @@ class EClient(object):
             )
             return
 
-        self.sendMsg(OUT.REQ_MKT_DEPTH_EXCHANGES, "")
+        try:
+            self.sendMsg(OUT.REQ_MKT_DEPTH_EXCHANGES, "")
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQMKTDEPTHEXCHANGES.code(), FAIL_SEND_REQMKTDEPTHEXCHANGES.msg() + str(ex))
+            return
 
     def reqMktDepth(
         self,
@@ -3084,6 +3817,11 @@ class EClient(object):
         isSmartDepth:bool - specifies SMART depth request
         mktDepthOptions:TagValueList - For internal use only. Use default value
             XYZ."""
+
+        if (self.useProtoBuf(OUT.REQ_MKT_DEPTH)):
+            marketDepthRequestProto = createMarketDepthRequestProto(reqId, contract, numRows, isSmartDepth, mktDepthOptions)
+            self.reqMarketDepthProtoBuf(marketDepthRequestProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -3178,12 +3916,38 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_MKT_DEPTH, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQMKTDEPTH.code(), FAIL_SEND_REQMKTDEPTH.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_MKT_DEPTH, msg)
+    def reqMarketDepthProtoBuf(self, marketDepthRequestProto: MarketDepthRequestProto):
+        if marketDepthRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = marketDepthRequestProto.reqId if marketDepthRequestProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = marketDepthRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_MKT_DEPTH + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQMKTDEPTH.code(), FAIL_SEND_REQMKTDEPTH.msg() + str(ex))
+            return
 
     def cancelMktDepth(self, reqId: TickerId, isSmartDepth: bool):
         """After calling this function, market depth data for the specified id
@@ -3192,6 +3956,11 @@ class EClient(object):
         reqId:TickerId - The ID that was specified in the call to
             reqMktDepth().
         isSmartDepth:bool - specifies SMART depth request"""
+
+        if (self.useProtoBuf(OUT.CANCEL_MKT_DEPTH)):
+            cancelMarketDepthProto = createCancelMarketDepthProto(reqId, isSmartDepth)
+            self.cancelMarketDepthProtoBuf(cancelMarketDepthProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -3208,21 +3977,45 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        # send cancel mkt depth msg
-        flds = []
-        flds += [
-            make_field(VERSION),
-            make_field(reqId),
-        ]
+            # send cancel mkt depth msg
+            flds = []
+            flds += [
+                make_field(VERSION),
+                make_field(reqId),
+            ]
 
-        if self.serverVersion() >= MIN_SERVER_VER_SMART_DEPTH:
-            flds += [make_field(isSmartDepth)]
+            if self.serverVersion() >= MIN_SERVER_VER_SMART_DEPTH:
+                flds += [make_field(isSmartDepth)]
 
-        msg = "".join(flds)
+            msg = "".join(flds)
+            self.sendMsg(OUT.CANCEL_MKT_DEPTH, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANMKTDEPTH.code(), FAIL_SEND_CANMKTDEPTH.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.CANCEL_MKT_DEPTH, msg)
+    def cancelMarketDepthProtoBuf(self, cancelMarketDepthProto: CancelMarketDepthProto):
+        if cancelMarketDepthProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        reqId = cancelMarketDepthProto.reqId if cancelMarketDepthProto.HasField('reqId') else NO_VALID_ID
+
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = cancelMarketDepthProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.CANCEL_MKT_DEPTH + PROTOBUF_MSG_ID, serializedString)
+
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANMKTDEPTH.code(), FAIL_SEND_CANMKTDEPTH.msg() + str(ex))
+            return
 
     #########################################################################
     # News Bulletins
@@ -3241,15 +4034,18 @@ class EClient(object):
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
+        try:
+            VERSION = 1
 
-        VERSION = 1
+            msg = (
+                make_field(VERSION)
+                + make_field(allMsgs)
+            )
 
-        msg = (
-            make_field(VERSION)
-            + make_field(allMsgs)
-        )
-
-        self.sendMsg(OUT.REQ_NEWS_BULLETINS, msg)
+            self.sendMsg(OUT.REQ_NEWS_BULLETINS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_CORDER.code(), FAIL_SEND_CORDER.msg() + str(ex))
+            return
 
     def cancelNewsBulletins(self):
         """Call this function to stop receiving news bulletins."""
@@ -3260,11 +4056,14 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
-
-        self.sendMsg(OUT.CANCEL_NEWS_BULLETINS, msg)
+            msg = make_field(VERSION)
+            self.sendMsg(OUT.CANCEL_NEWS_BULLETINS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_CORDER.code(), FAIL_SEND_CORDER.msg() + str(ex))
+            return
 
     #########################################################################
     # Financial Advisors
@@ -3276,17 +4075,46 @@ class EClient(object):
 
         Note:  This request can only be made when connected to a FA managed account."""
 
+        if self.useProtoBuf(OUT.REQ_MANAGED_ACCTS):
+            self.reqManagedAcctsProtoBuf(createManagedAccountsRequestProto())
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
+            msg = make_field(VERSION)
+            return self.sendMsg(OUT.REQ_MANAGED_ACCTS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_OORDER.code(), FAIL_SEND_OORDER.msg() + str(ex))
+            return
 
-        return self.sendMsg(OUT.REQ_MANAGED_ACCTS, msg)
+    def reqManagedAcctsProtoBuf(self, managedAccountsRequestProto: ManagedAccountsRequestProto):
+        if managedAccountsRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = managedAccountsRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_MANAGED_ACCTS + PROTOBUF_MSG_ID, serializedString)
+
+        except ClientException as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_ACCT.code(), FAIL_SEND_ACCT.msg() + str(ex))
+            return
 
     def requestFA(self, faData: FaDataType):
         """Call this function to request FA configuration information from TWS.
@@ -3312,11 +4140,14 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION) + make_field(int(faData))
-
-        return self.sendMsg(OUT.REQ_FA, msg)
+            msg = make_field(VERSION) + make_field(int(faData))
+            return self.sendMsg(OUT.REQ_FA, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_FA_REQUEST.code(), FAIL_SEND_FA_REQUEST.msg() + str(ex))
+            return
 
     def replaceFA(self, reqId: TickerId, faData: FaDataType, cxml: str):
         """Call this function to modify FA configuration information from the
@@ -3351,12 +4182,14 @@ class EClient(object):
 
             if self.serverVersion() >= MIN_SERVER_VER_REPLACE_FA_END:
                 msg += make_field(reqId)
+            return self.sendMsg(OUT.REPLACE_FA, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        return self.sendMsg(OUT.REPLACE_FA, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_FA_REPLACE.code(), FAIL_SEND_FA_REPLACE.msg() + str(ex))
+            return
 
     #########################################################################
     # Historical Data
@@ -3429,6 +4262,11 @@ class EClient(object):
             2 - dates are returned as a long integer specifying the number of seconds since
                 1/1/1970 GMT.
         chartOptions:TagValueList - For internal use only. Use default value XYZ."""
+
+        if self.useProtoBuf(OUT.REQ_HISTORICAL_DATA):
+            historicalDataRequestProto = createHistoricalDataRequestProto(reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH != 0, formatDate, keepUpToDate, chartOptions)
+            self.reqHistoricalDataProtoBuf(historicalDataRequestProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -3533,12 +4371,38 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_HISTORICAL_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQHISTDATA.code(), FAIL_SEND_REQHISTDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_HISTORICAL_DATA, msg)
+    def reqHistoricalDataProtoBuf(self, historicalDataRequestProto: HistoricalDataRequestProto):
+        if historicalDataRequestProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = historicalDataRequestProto.reqId if historicalDataRequestProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = historicalDataRequestProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.REQ_HISTORICAL_DATA + PROTOBUF_MSG_ID, serializedString)
+        
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQHISTDATA.code(), FAIL_SEND_REQHISTDATA.msg() + str(ex))
+            return
 
     def cancelHistoricalData(self, reqId: TickerId):
         """Used if an internet disconnect has occurred or the results of a query
@@ -3547,20 +4411,49 @@ class EClient(object):
 
         reqId:TickerId - The ticker ID. Must be a unique value."""
 
+        if self.useProtoBuf(OUT.CANCEL_HISTORICAL_DATA):
+            cancelHistoricalDataProto = createCancelHistoricalDataProto(reqId)
+            self.cancelHistoricalDataProtoBuf(cancelHistoricalDataProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.CANCEL_HISTORICAL_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANHISTDATA.code(), FAIL_SEND_CANHISTDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.CANCEL_HISTORICAL_DATA, msg)
+    def cancelHistoricalDataProtoBuf(self, cancelHistoricalDataProto: CancelHistoricalDataProto):
+        if cancelHistoricalDataProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = cancelHistoricalDataProto.reqId if cancelHistoricalDataProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = cancelHistoricalDataProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.CANCEL_HISTORICAL_DATA + PROTOBUF_MSG_ID, serializedString)
+        
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANHISTDATA.code(), FAIL_SEND_CANHISTDATA.msg() + str(ex))
+            return
 
     # Note that formatData parameter affects intraday bars only
     # 1-day bars always return with date in YYYYMMDD format
@@ -3573,6 +4466,11 @@ class EClient(object):
         useRTH: int,
         formatDate: int,
     ):
+        if self.useProtoBuf(OUT.REQ_HEAD_TIMESTAMP):
+            headTimestampRequestProto = createHeadTimestampRequestProto(reqId, contract, whatToShow, useRTH != 0, formatDate)
+            self.reqHeadTimestampProtoBuf(headTimestampRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -3611,14 +4509,45 @@ class EClient(object):
             ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_HEAD_TIMESTAMP, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQHEADTIMESTAMP.code(), FAIL_SEND_REQHEADTIMESTAMP.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_HEAD_TIMESTAMP, msg)
+    def reqHeadTimestampProtoBuf(self, headTimestampRequestProto: HeadTimestampRequestProto):
+        if headTimestampRequestProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = headTimestampRequestProto.reqId if headTimestampRequestProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = headTimestampRequestProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.REQ_HEAD_TIMESTAMP + PROTOBUF_MSG_ID, serializedString)
+        
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQHEADTIMESTAMP.code(), FAIL_SEND_REQHEADTIMESTAMP.msg() + str(ex))
+            return
 
     def cancelHeadTimeStamp(self, reqId: TickerId):
+        if self.useProtoBuf(OUT.CANCEL_HEAD_TIMESTAMP):
+            cancelHeadTimestampProto = createCancelHeadTimestampProto(reqId)
+            self.cancelHeadTimestampProtoBuf(cancelHeadTimestampProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -3635,14 +4564,44 @@ class EClient(object):
             return
 
         flds = []
-        flds += [make_field(reqId)]
+        try:
+            flds += [make_field(reqId)]
 
-        msg = "".join(flds)
-        self.sendMsg(OUT.CANCEL_HEAD_TIMESTAMP, msg)
+            msg = "".join(flds)
+            self.sendMsg(OUT.CANCEL_HEAD_TIMESTAMP, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_CANCELHEADTIMESTAMP.code(), FAIL_SEND_CANCELHEADTIMESTAMP.msg() + str(ex))
+            return
+
+    def cancelHeadTimestampProtoBuf(self, cancelHeadTimestampProto: CancelHeadTimestampProto):
+        if cancelHeadTimestampProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = cancelHeadTimestampProto.reqId if cancelHeadTimestampProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = cancelHeadTimestampProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.CANCEL_HEAD_TIMESTAMP + PROTOBUF_MSG_ID, serializedString)
+        
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCELHEADTIMESTAMP.code(), FAIL_SEND_CANCELHEADTIMESTAMP.msg() + str(ex))
+            return
 
     def reqHistogramData(
         self, tickerId: int, contract: Contract, useRTH: bool, timePeriod: str
     ):
+        if self.useProtoBuf(OUT.REQ_HISTOGRAM_DATA):
+            histogramDataRequestProto = createHistogramDataRequestProto(tickerId, contract, useRTH, timePeriod)
+            self.reqHistogramDataProtoBuf(histogramDataRequestProto )
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -3680,14 +4639,45 @@ class EClient(object):
             ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_HISTOGRAM_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(tickerId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(tickerId, currentTimeMillis(), FAIL_SEND_REQHISTOGRAMDATA.code(), FAIL_SEND_REQHISTOGRAMDATA.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_HISTOGRAM_DATA, msg)
+    def reqHistogramDataProtoBuf(self, histogramDataRequestProto: HistogramDataRequestProto):
+        if histogramDataRequestProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = histogramDataRequestProto.reqId if histogramDataRequestProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = histogramDataRequestProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.REQ_HISTOGRAM_DATA + PROTOBUF_MSG_ID, serializedString)
+        
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQHISTOGRAMDATA.code(), FAIL_SEND_REQHISTOGRAMDATA.msg() + str(ex))
+            return
 
     def cancelHistogramData(self, tickerId: int):
+        if self.useProtoBuf(OUT.CANCEL_HISTOGRAM_DATA):
+            cancelHistogramDataProto = createCancelHistogramDataProto(tickerId)
+            self.cancelHistogramDataProtoBuf(cancelHistogramDataProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -3705,7 +4695,32 @@ class EClient(object):
 
         msg = make_field(tickerId)
 
-        self.sendMsg(OUT.CANCEL_HISTOGRAM_DATA, msg)
+        try:
+            self.sendMsg(OUT.CANCEL_HISTOGRAM_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(tickerId, currentTimeMillis(), FAIL_SEND_CANCELHISTOGRAMDATA.code(), FAIL_SEND_CANCELHISTOGRAMDATA.msg() + str(ex))
+            return
+
+    def cancelHistogramDataProtoBuf(self, cancelHistogramDataProto: CancelHistogramDataProto):
+        if cancelHistogramDataProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = cancelHistogramDataProto.reqId if cancelHistogramDataProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = cancelHistogramDataProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.CANCEL_HISTOGRAM_DATA + PROTOBUF_MSG_ID, serializedString)
+        
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANCELHISTOGRAMDATA.code(), FAIL_SEND_CANCELHISTOGRAMDATA.msg() + str(ex))
+            return
 
     def reqHistoricalTicks(
         self,
@@ -3719,6 +4734,11 @@ class EClient(object):
         ignoreSize: bool,
         miscOptions: TagValueList,
     ):
+        if self.useProtoBuf(OUT.REQ_HISTORICAL_TICKS):
+            historicalTicksRequestProto = createHistoricalTicksRequestProto(reqId, contract, startDateTime, endDateTime, numberOfTicks, whatToShow, useRth != 0, ignoreSize, miscOptions)
+            self.reqHistoricalTicksProtoBuf(historicalTicksRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
@@ -3768,12 +4788,38 @@ class EClient(object):
             ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_HISTORICAL_TICKS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQHISTORICALTICKS.code(), FAIL_SEND_REQHISTORICALTICKS.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_HISTORICAL_TICKS, msg)
+    def reqHistoricalTicksProtoBuf(self, historicalTicksRequestProto: HistoricalTicksRequestProto):
+        if historicalTicksRequestProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = historicalTicksRequestProto.reqId if historicalTicksRequestProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = historicalTicksRequestProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.REQ_HISTORICAL_TICKS + PROTOBUF_MSG_ID, serializedString)
+        
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQHISTORICALTICKS.code(), FAIL_SEND_REQHISTORICALTICKS.msg() + str(ex))
+            return
 
     #########################################################################
     # Market Scanners
@@ -3788,11 +4834,15 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = make_field(VERSION)
+            msg = make_field(VERSION)
 
-        self.sendMsg(OUT.REQ_SCANNER_PARAMETERS, msg)
+            self.sendMsg(OUT.REQ_SCANNER_PARAMETERS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQSCANNERPARAMETERS.code(), FAIL_SEND_REQSCANNERPARAMETERS.msg() + str(ex))
+            return
 
     def reqScannerSubscription(
         self,
@@ -3880,12 +4930,14 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_SCANNER_SUBSCRIPTION, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_SCANNER_SUBSCRIPTION, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQSCANNER.code(), FAIL_SEND_REQSCANNER.msg() + str(ex))
+            return
 
     def cancelScannerSubscription(self, reqId: int):
         """reqId:int - The ticker ID. Must be a unique value."""
@@ -3896,14 +4948,18 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
 
-        self.sendMsg(OUT.CANCEL_SCANNER_SUBSCRIPTION, msg)
+            self.sendMsg(OUT.CANCEL_SCANNER_SUBSCRIPTION, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANSCANNER.code(), FAIL_SEND_CANSCANNER.msg() + str(ex))
+            return
 
     #########################################################################
     # Real Time Bars
@@ -3943,6 +4999,10 @@ class EClient(object):
                 partially or completely outside.
         realTimeBarOptions:TagValueList - For internal use only. Use default value XYZ.
         """
+        if self.useProtoBuf(OUT.REQ_REAL_TIME_BARS):
+            realTimeBarsRequestProto = createRealTimeBarsRequestProto(reqId, contract, barSize, whatToShow, useRTH, realTimeBarsOptions)
+            self.reqRealTimeBarsProtoBuf(realTimeBarsRequestProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -4004,17 +5064,48 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_REAL_TIME_BARS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQRTBARS.code(), FAIL_SEND_REQRTBARS.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.REQ_REAL_TIME_BARS, msg)
+    def reqRealTimeBarsProtoBuf(self, realTimeBarsRequestProto: RealTimeBarsRequestProto):
+        if realTimeBarsRequestProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = realTimeBarsRequestProto.reqId if realTimeBarsRequestProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = realTimeBarsRequestProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.REQ_REAL_TIME_BARS + PROTOBUF_MSG_ID, serializedString)
+        
+        except ClientException as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            return
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQRTBARS.code(), FAIL_SEND_REQRTBARS.msg() + str(ex))
+            return
 
     def cancelRealTimeBars(self, reqId: TickerId):
         """Call the cancelRealTimeBars() function to stop receiving real time bar results.
 
         reqId:TickerId - The id that was specified in the call to reqRealTimeBars()."""
+
+        if self.useProtoBuf(OUT.CANCEL_REAL_TIME_BARS):
+            cancelRealTimeBarsProto = createCancelRealTimeBarsProto(reqId)
+            self.cancelRealTimeBarsProtoBuf(cancelRealTimeBarsProto)
+            return
 
         self.logRequest(current_fn_name(), vars())
 
@@ -4022,17 +5113,42 @@ class EClient(object):
             self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        # send req mkt data msg
-        flds = []
-        flds += [
-            make_field(VERSION),
-            make_field(reqId),
-        ]
+            # send req mkt data msg
+            flds = []
+            flds += [
+                make_field(VERSION),
+                make_field(reqId),
+            ]
 
-        msg = "".join(flds)
-        self.sendMsg(OUT.CANCEL_REAL_TIME_BARS, msg)
+            msg = "".join(flds)
+            self.sendMsg(OUT.CANCEL_REAL_TIME_BARS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANRTBARS.code(), FAIL_SEND_CANRTBARS.msg() + str(ex))
+            return
+
+    def cancelRealTimeBarsProtoBuf(self, cancelRealTimeBarsProto: CancelRealTimeBarsProto):
+        if cancelRealTimeBarsProto is None:
+            return
+        
+        self.logRequest(current_fn_name(), vars())
+    
+        reqId = cancelRealTimeBarsProto.reqId if cancelRealTimeBarsProto.HasField('reqId') else NO_VALID_ID
+    
+        if not self.isConnected():
+            self.wrapper.error(reqId, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+        
+        try:
+            serializedString = cancelRealTimeBarsProto.SerializeToString()
+        
+            self.sendMsgProtoBuf(OUT.CANCEL_REAL_TIME_BARS + PROTOBUF_MSG_ID, serializedString)
+        
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANRTBARS.code(), FAIL_SEND_CANRTBARS.msg() + str(ex))
+            return
 
     #########################################################################
     # Fundamental Data
@@ -4127,12 +5243,14 @@ class EClient(object):
                 flds += [make_field(tagValuesCount), make_field(fundDataOptStr)]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_FUNDAMENTAL_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_FUNDAMENTAL_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQFUNDDATA.code(), FAIL_SEND_REQFUNDDATA.msg() + str(ex))
+            return
 
     def cancelFundamentalData(self, reqId: TickerId):
         """Call this function to stop receiving fundamental data.
@@ -4154,14 +5272,18 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
 
-        self.sendMsg(OUT.CANCEL_FUNDAMENTAL_DATA, msg)
+            self.sendMsg(OUT.CANCEL_FUNDAMENTAL_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CANFUNDDATA.code(), FAIL_SEND_CANFUNDDATA.msg() + str(ex))
+            return
 
     ########################################################################
     # News
@@ -4183,7 +5305,11 @@ class EClient(object):
             )
             return
 
-        self.sendMsg(OUT.REQ_NEWS_PROVIDERS, "")
+        try:
+            self.sendMsg(OUT.REQ_NEWS_PROVIDERS, "")
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQNEWSPROVIDERS.code(), FAIL_SEND_REQNEWSPROVIDERS.msg() + str(ex))
+            return
 
     def reqNewsArticle(
         self,
@@ -4227,12 +5353,14 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_NEWS_ARTICLE, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_NEWS_ARTICLE, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQNEWSARTICLE.code(), FAIL_SEND_REQNEWSARTICLE.msg() + str(ex))
+            return
 
     def reqHistoricalNews(
         self,
@@ -4282,12 +5410,14 @@ class EClient(object):
                 ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_HISTORICAL_NEWS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_HISTORICAL_NEWS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQHISTORICALNEWS.code(), FAIL_SEND_REQHISTORICALNEWS.msg() + str(ex))
+            return
 
     #########################################################################
     # Display Groups
@@ -4317,14 +5447,17 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
-
-        self.sendMsg(OUT.QUERY_DISPLAY_GROUPS, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.QUERY_DISPLAY_GROUPS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_QUERYDISPLAYGROUPS.code(), FAIL_SEND_QUERYDISPLAYGROUPS.msg() + str(ex))
+            return
 
     def subscribeToGroupEvents(self, reqId: int, groupId: int):
         """reqId:int - The unique number associated with the notification.
@@ -4347,15 +5480,18 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-            + make_field(groupId)
-        )
-
-        self.sendMsg(OUT.SUBSCRIBE_TO_GROUP_EVENTS, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+                + make_field(groupId)
+            )
+            self.sendMsg(OUT.SUBSCRIBE_TO_GROUP_EVENTS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_SUBSCRIBETOGROUPEVENTS.code(), FAIL_SEND_SUBSCRIBETOGROUPEVENTS.msg() + str(ex))
+            return
 
     def updateDisplayGroup(self, reqId: int, contractInfo: str):
         """reqId:int - The requestId specified in subscribeToGroupEvents().
@@ -4390,12 +5526,14 @@ class EClient(object):
                 + make_field(reqId)
                 + make_field(contractInfo)
             )
+            self.sendMsg(OUT.UPDATE_DISPLAY_GROUP, msg)
 
         except ClientException as ex:
-            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
+            self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.UPDATE_DISPLAY_GROUP, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_UPDATEDISPLAYGROUP.code(), FAIL_SEND_UPDATEDISPLAYGROUP.msg() + str(ex))
+            return
 
     def unsubscribeFromGroupEvents(self, reqId: int):
         """reqId:int - The requestId specified in subscribeToGroupEvents()."""
@@ -4416,14 +5554,17 @@ class EClient(object):
             )
             return
 
-        VERSION = 1
+        try:
+            VERSION = 1
 
-        msg = (
-            make_field(VERSION)
-            + make_field(reqId)
-        )
-
-        self.sendMsg(OUT.UNSUBSCRIBE_FROM_GROUP_EVENTS, msg)
+            msg = (
+                make_field(VERSION)
+                + make_field(reqId)
+            )
+            self.sendMsg(OUT.UNSUBSCRIBE_FROM_GROUP_EVENTS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_UNSUBSCRIBEFROMGROUPEVENTS.code(), FAIL_SEND_UNSUBSCRIBEFROMGROUPEVENTS.msg() + str(ex))
+            return
 
     def verifyRequest(self, apiName: str, apiVersion: str):
         """For IB's internal purpose. Allows to provide means of verification
@@ -4448,8 +5589,8 @@ class EClient(object):
             self.wrapper.error(
                 NO_VALID_ID,
                 currentTimeMillis(),
-                BAD_MESSAGE.code(),
-                BAD_MESSAGE.msg()
+                FAIL_SEND_VERIFYMESSAGE.code(),
+                FAIL_SEND_VERIFYMESSAGE.msg()
                 + "  Intent to authenticate needs to be expressed during initial connect request.",
             )
             return
@@ -4462,12 +5603,14 @@ class EClient(object):
                 + make_field(apiName)
                 + make_field(apiVersion)
             )
+            self.sendMsg(OUT.VERIFY_REQUEST, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.VERIFY_REQUEST, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_VERIFYREQUEST.code(), FAIL_SEND_VERIFYREQUEST.msg() + str(ex))
+            return
 
     def verifyMessage(self, apiData: str):
         """For IB's internal purpose. Allows to provide means of verification
@@ -4495,12 +5638,15 @@ class EClient(object):
                 make_field(VERSION)
                 + make_field(apiData)
             )
+            self.sendMsg(OUT.VERIFY_MESSAGE, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_VERIFYMESSAGE.code(), FAIL_SEND_VERIFYMESSAGE.msg() + str(ex))
+            return
 
-        self.sendMsg(OUT.VERIFY_MESSAGE, msg)
 
     def verifyAndAuthRequest(self, apiName: str, apiVersion: str, opaqueIsvKey: str):
         """For IB's internal purpose. Allows to provide means of verification
@@ -4525,8 +5671,8 @@ class EClient(object):
             self.wrapper.error(
                 NO_VALID_ID,
                 currentTimeMillis(),
-                BAD_MESSAGE.code(),
-                BAD_MESSAGE.msg()
+                FAIL_SEND_VERIFYANDAUTHREQUEST.code(),
+                FAIL_SEND_VERIFYANDAUTHREQUEST.msg()
                 + "  Intent to authenticate needs to be expressed during initial connect request.",
             )
             return
@@ -4540,12 +5686,14 @@ class EClient(object):
                 + make_field(apiVersion)
                 + make_field(opaqueIsvKey)
             )
+            self.sendMsg(OUT.VERIFY_AND_AUTH_REQUEST, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.VERIFY_AND_AUTH_REQUEST, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_VERIFYANDAUTHREQUEST.code(), FAIL_SEND_VERIFYANDAUTHREQUEST.msg() + str(ex))
+            return
 
     def verifyAndAuthMessage(self, apiData: str, xyzResponse: str):
         """For IB's internal purpose. Allows to provide means of verification
@@ -4574,12 +5722,14 @@ class EClient(object):
                 + make_field(apiData)
                 + make_field(xyzResponse)
             )
+            self.sendMsg(OUT.VERIFY_AND_AUTH_MESSAGE, msg)
 
         except ClientException as ex:
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.VERIFY_AND_AUTH_MESSAGE, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_VERIFYANDAUTHMESSAGE.code(), FAIL_SEND_VERIFYANDAUTHMESSAGE.msg() + str(ex))
+            return
 
     def reqSecDefOptParams(
         self,
@@ -4624,12 +5774,14 @@ class EClient(object):
             ]
 
             msg = "".join(flds)
+            self.sendMsg(OUT.REQ_SEC_DEF_OPT_PARAMS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_SEC_DEF_OPT_PARAMS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQSECDEFOPTPARAMS.code(), FAIL_SEND_REQSECDEFOPTPARAMS.msg() + str(ex))
+            return
 
     def reqSoftDollarTiers(self, reqId: int):
         """Requests pre-defined Soft Dollar Tiers. This is only supported for
@@ -4642,9 +5794,12 @@ class EClient(object):
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        msg = make_field(reqId)
-
-        self.sendMsg(OUT.REQ_SOFT_DOLLAR_TIERS, msg)
+        try:
+            msg = make_field(reqId)
+            self.sendMsg(OUT.REQ_SOFT_DOLLAR_TIERS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQSOFTDOLLARTIERS.code(), FAIL_SEND_REQSOFTDOLLARTIERS.msg() + str(ex))
+            return
 
     def reqFamilyCodes(self):
         self.logRequest(current_fn_name(), vars())
@@ -4662,7 +5817,11 @@ class EClient(object):
             )
             return
 
-        self.sendMsg(OUT.REQ_FAMILY_CODES, "")
+        try:
+            self.sendMsg(OUT.REQ_FAMILY_CODES, "")
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQFAMILYCODES.code(), FAIL_SEND_REQFAMILYCODES.msg() + str(ex))
+            return
 
     def reqMatchingSymbols(self, reqId: int, pattern: str):
         self.logRequest(current_fn_name(), vars())
@@ -4685,12 +5844,14 @@ class EClient(object):
                 make_field(reqId)
                 + make_field(pattern)
             )
+            self.sendMsg(OUT.REQ_MATCHING_SYMBOLS, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_MATCHING_SYMBOLS, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQMATCHINGSYMBOLS.code(), FAIL_SEND_REQMATCHINGSYMBOLS.msg() + str(ex))
+            return
 
     def reqCompletedOrders(self, apiOnly: bool):
         """Call this function to request the completed orders. If apiOnly parameter
@@ -4698,15 +5859,42 @@ class EClient(object):
         Each completed order will be fed back through the
         completedOrder() function on the EWrapper."""
 
+        if (self.useProtoBuf(OUT.REQ_COMPLETED_ORDERS)):
+            completedOrdersRequestProto = createCompletedOrdersRequestProto(apiOnly)
+            self.reqCompletedOrdersProtoBuf(completedOrdersRequestProto)
+            return
+
         self.logRequest(current_fn_name(), vars())
 
         if not self.isConnected():
             self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
             return
 
-        msg = make_field(apiOnly)
+        try:
+            msg = make_field(apiOnly)
 
-        self.sendMsg(OUT.REQ_COMPLETED_ORDERS, msg)
+            self.sendMsg(OUT.REQ_COMPLETED_ORDERS, msg)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQCOMPLETEDORDERS.code(), FAIL_SEND_REQCOMPLETEDORDERS.msg() + str(ex))
+            return
+
+    def reqCompletedOrdersProtoBuf(self, completedOrdersRequestProto: CompletedOrdersRequestProto):
+        if completedOrdersRequestProto is None:
+            return
+
+        self.logRequest(current_fn_name(), vars())
+
+        if not self.isConnected():
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), NOT_CONNECTED.code(), NOT_CONNECTED.msg())
+            return
+
+        try:
+            serializedString = completedOrdersRequestProto.SerializeToString()
+
+            self.sendMsgProtoBuf(OUT.REQ_COMPLETED_ORDERS + PROTOBUF_MSG_ID, serializedString)
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQCOMPLETEDORDERS.code(), FAIL_SEND_REQCOMPLETEDORDERS.msg() + str(ex))
+            return
 
     def reqWshMetaData(self, reqId: int):
         self.logRequest(current_fn_name(), vars())
@@ -4726,12 +5914,14 @@ class EClient(object):
 
         try:
             msg = make_field(reqId)
+            self.sendMsg(OUT.REQ_WSH_META_DATA, msg)
 
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_WSH_META_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQ_WSH_META_DATA.code(), FAIL_SEND_REQ_WSH_META_DATA.msg() + str(ex))
+            return
 
     def cancelWshMetaData(self, reqId: int):
         self.logRequest(current_fn_name(), vars())
@@ -4749,9 +5939,12 @@ class EClient(object):
             )
             return
 
-        msg = make_field(reqId)
-
-        self.sendMsg(OUT.CANCEL_WSH_META_DATA, msg)
+        try:
+            msg = make_field(reqId)
+            self.sendMsg(OUT.CANCEL_WSH_META_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CAN_WSH_META_DATA.code(), FAIL_SEND_CAN_WSH_META_DATA.msg() + str(ex))
+            return
 
     def reqWshEventData(
         self,
@@ -4822,12 +6015,13 @@ class EClient(object):
                 flds.append(make_field(wshEventData.totalLimit))
 
             msg = "".join(flds)
-
+            self.sendMsg(OUT.REQ_WSH_EVENT_DATA, msg)
         except ClientException as ex:
             self.wrapper.error(reqId, currentTimeMillis(), ex.code, ex.msg + ex.text)
             return
-
-        self.sendMsg(OUT.REQ_WSH_EVENT_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQ_WSH_EVENT_DATA.code(), FAIL_SEND_REQ_WSH_EVENT_DATA.msg() + str(ex))
+            return
 
     def cancelWshEventData(self, reqId: int):
         self.logRequest(current_fn_name(), vars())
@@ -4845,9 +6039,12 @@ class EClient(object):
             )
             return
 
-        msg = make_field(reqId)
-
-        self.sendMsg(OUT.CANCEL_WSH_EVENT_DATA, msg)
+        try:
+            msg = make_field(reqId)
+            self.sendMsg(OUT.CANCEL_WSH_EVENT_DATA, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_CAN_WSH_EVENT_DATA.code(), FAIL_SEND_CAN_WSH_EVENT_DATA.msg() + str(ex))
+            return
 
     def reqUserInfo(self, reqId: int):
         self.logRequest(current_fn_name(), vars())
@@ -4865,9 +6062,12 @@ class EClient(object):
             )
             return
 
-        msg = make_field(reqId)
-
-        self.sendMsg(OUT.REQ_USER_INFO, msg)
+        try:
+            msg = make_field(reqId)
+            self.sendMsg(OUT.REQ_USER_INFO, msg)
+        except Exception as ex:
+            self.wrapper.error(reqId, currentTimeMillis(), FAIL_SEND_REQ_USER_INFO.code(), FAIL_SEND_REQ_USER_INFO.msg() + str(ex))
+            return
         
     def reqCurrentTimeInMillis(self):
         """Asks the current system time in milliseconds on the server side."""
@@ -4886,6 +6086,9 @@ class EClient(object):
                 UPDATE_TWS.msg() + " It does not support current time in millis requests.",
             )
             return
-        
-        self.sendMsg(OUT.REQ_CURRENT_TIME_IN_MILLIS, "")
 
+        try:
+            self.sendMsg(OUT.REQ_CURRENT_TIME_IN_MILLIS, "")
+        except Exception as ex:
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), FAIL_SEND_REQCURRTIMEINMILLIS.code(), FAIL_SEND_REQCURRTIMEINMILLIS.msg() + str(ex))
+            return

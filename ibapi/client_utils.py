@@ -12,6 +12,8 @@ from ibapi.order_condition import OrderCondition, OperatorCondition, ContractCon
 from ibapi.tag_value import TagValue
 from ibapi.utils import isValidIntValue, isValidFloatValue, isValidLongValue, isValidDecimalValue, decimalMaxString
 from ibapi.order_condition import Create
+from ibapi.common import TagValueList
+from ibapi.order_cancel import OrderCancel
 
 from ibapi.protobuf.ComboLeg_pb2 import ComboLeg as ComboLegProto
 from ibapi.protobuf.Contract_pb2 import Contract as ContractProto
@@ -25,6 +27,42 @@ from ibapi.protobuf.ExecutionFilter_pb2 import ExecutionFilter as ExecutionFilte
 from ibapi.protobuf.ExecutionRequest_pb2 import ExecutionRequest as ExecutionRequestProto
 from ibapi.protobuf.Order_pb2 import Order as OrderProto
 from ibapi.protobuf.SoftDollarTier_pb2 import SoftDollarTier as SoftDollarTierProto
+from ibapi.protobuf.AllOpenOrdersRequest_pb2 import AllOpenOrdersRequest as AllOpenOrdersRequestProto
+from ibapi.protobuf.AutoOpenOrdersRequest_pb2 import AutoOpenOrdersRequest as AutoOpenOrdersRequestProto
+from ibapi.protobuf.OpenOrdersRequest_pb2 import OpenOrdersRequest as OpenOrdersRequestProto
+from ibapi.protobuf.CompletedOrdersRequest_pb2 import CompletedOrdersRequest as CompletedOrdersRequestProto
+from ibapi.protobuf.ContractDataRequest_pb2 import ContractDataRequest as ContractDataRequestProto
+from ibapi.protobuf.MarketDataRequest_pb2 import MarketDataRequest as MarketDataRequestProto
+from ibapi.protobuf.CancelMarketData_pb2 import CancelMarketData as CancelMarketDataProto
+from ibapi.protobuf.MarketDepthRequest_pb2 import MarketDepthRequest as MarketDepthRequestProto
+from ibapi.protobuf.CancelMarketDepth_pb2 import CancelMarketDepth as CancelMarketDepthProto
+from ibapi.protobuf.MarketDataTypeRequest_pb2 import MarketDataTypeRequest as MarketDataTypeRequestProto
+from ibapi.protobuf.AccountDataRequest_pb2 import AccountDataRequest as AccountDataRequestProto
+from ibapi.protobuf.ManagedAccountsRequest_pb2 import ManagedAccountsRequest as ManagedAccountsRequestProto
+from ibapi.protobuf.PositionsRequest_pb2 import PositionsRequest as PositionsRequestProto
+from ibapi.protobuf.CancelPositions_pb2 import CancelPositions as CancelPositionsProto
+from ibapi.protobuf.AccountSummaryRequest_pb2 import AccountSummaryRequest as AccountSummaryRequestProto
+from ibapi.protobuf.CancelAccountSummary_pb2 import CancelAccountSummary as CancelAccountSummaryProto
+from ibapi.protobuf.PositionsMultiRequest_pb2 import PositionsMultiRequest as PositionsMultiRequestProto
+from ibapi.protobuf.CancelPositionsMulti_pb2 import CancelPositionsMulti as CancelPositionsMultiProto
+from ibapi.protobuf.AccountUpdatesMultiRequest_pb2 import AccountUpdatesMultiRequest as AccountUpdatesMultiRequestProto
+from ibapi.protobuf.CancelAccountUpdatesMulti_pb2 import CancelAccountUpdatesMulti as CancelAccountUpdatesMultiProto
+from ibapi.protobuf.HistoricalDataRequest_pb2 import HistoricalDataRequest as HistoricalDataRequestProto
+from ibapi.protobuf.RealTimeBarsRequest_pb2 import RealTimeBarsRequest as RealTimeBarsRequestProto
+from ibapi.protobuf.HeadTimestampRequest_pb2 import HeadTimestampRequest as HeadTimestampRequestProto
+from ibapi.protobuf.HistogramDataRequest_pb2 import HistogramDataRequest as HistogramDataRequestProto
+from ibapi.protobuf.HistoricalTicksRequest_pb2 import HistoricalTicksRequest as HistoricalTicksRequestProto
+from ibapi.protobuf.TickByTickRequest_pb2 import TickByTickRequest as TickByTickRequestProto
+from ibapi.protobuf.CancelHistoricalData_pb2 import CancelHistoricalData as CancelHistoricalDataProto
+from ibapi.protobuf.CancelRealTimeBars_pb2 import CancelRealTimeBars as CancelRealTimeBarsProto
+from ibapi.protobuf.CancelHeadTimestamp_pb2 import CancelHeadTimestamp as CancelHeadTimestampProto
+from ibapi.protobuf.CancelHistogramData_pb2 import CancelHistogramData as CancelHistogramDataProto
+from ibapi.protobuf.CancelTickByTick_pb2 import CancelTickByTick as CancelTickByTickProto
+
+from ibapi.errors import (
+    ERROR_ENCODING_PROTOBUF
+)
+from ibapi.utils import ClientException
 
 @staticmethod
 def createExecutionRequestProto(reqId: int, execFilter: ExecutionFilter) -> ExecutionRequestProto:
@@ -64,7 +102,7 @@ def createContractProto(contract: Contract, order: Order) -> ContractProto:
     if contract.right: contractProto.right = contract.right
     if contract.multiplier: contractProto.multiplier = float(contract.multiplier)
     if contract.exchange: contractProto.exchange = contract.exchange
-    if contract.primaryExchange: contractProto.primaryExchange = contract.primaryExchange
+    if contract.primaryExchange: contractProto.primaryExch = contract.primaryExchange
     if contract.currency: contractProto.currency = contract.currency
     if contract.localSymbol: contractProto.localSymbol = contract.localSymbol
     if contract.tradingClass: contractProto.tradingClass = contract.tradingClass
@@ -98,7 +136,7 @@ def createDeltaNeutralContractProto(contract: Contract) -> DeltaNeutralContractP
 @staticmethod
 def createComboLegProtoList(contract: Contract, order: Order) -> list[ComboLegProto]:
     comboLegs = contract.comboLegs
-    orderComboLegs = order.orderComboLegs
+    orderComboLegs = order.orderComboLegs if order is not None else None 
     comboLegProtoList = []
     if comboLegs is not None and comboLegs:
         for i, comboLeg in enumerate(comboLegs):
@@ -273,24 +311,28 @@ def createOrderProto(order: Order) -> OrderProto:
 
 def createConditionsProto(order: Order) -> list[OrderConditionProto]:
     orderConditionProtoList = []
-    if order.conditions is not None and order.conditions:
-        for orderCondition in order.conditions:
-            conditionType = orderCondition.condType
+    try:
+        if order.conditions is not None and order.conditions:
+            for orderCondition in order.conditions:
+                conditionType = orderCondition.condType
 
-            if OrderCondition.Price == conditionType:
-                orderConditionProto = createPriceConditionProto(orderCondition)
-            elif OrderCondition.Time == conditionType:
-                orderConditionProto = createTimeConditionProto(orderCondition)
-            elif OrderCondition.Margin == conditionType:
-                orderConditionProto = createMarginConditionProto(orderCondition)
-            elif OrderCondition.Execution == conditionType:
-                orderConditionProto = createExecutionConditionProto(orderCondition)
-            elif OrderCondition.Volume == conditionType:
-                orderConditionProto = createVolumeConditionProto(orderCondition)
-            elif OrderCondition.PercentChange == conditionType:
-                orderConditionProto = createPercentChangeConditionProto(orderCondition)
+                if OrderCondition.Price == conditionType:
+                    orderConditionProto = createPriceConditionProto(orderCondition)
+                elif OrderCondition.Time == conditionType:
+                    orderConditionProto = createTimeConditionProto(orderCondition)
+                elif OrderCondition.Margin == conditionType:
+                    orderConditionProto = createMarginConditionProto(orderCondition)
+                elif OrderCondition.Execution == conditionType:
+                    orderConditionProto = createExecutionConditionProto(orderCondition)
+                elif OrderCondition.Volume == conditionType:
+                    orderConditionProto = createVolumeConditionProto(orderCondition)
+                elif OrderCondition.PercentChange == conditionType:
+                    orderConditionProto = createPercentChangeConditionProto(orderCondition)
 
-            if orderConditionProto is not None: orderConditionProtoList.append(orderConditionProto)
+                if orderConditionProto is not None: orderConditionProtoList.append(orderConditionProto)
+
+    except Exception:
+        raise ClientException(ERROR_ENCODING_PROTOBUF.code(), ERROR_ENCODING_PROTOBUF.msg(), "Error encoding conditions")
 
     return orderConditionProtoList
 
@@ -389,7 +431,7 @@ def fillTagValueList(tagValueList: list, orderProtoMap: dict):
             orderProtoMap[tagValue.tag] = tagValue.value
 
 @staticmethod
-def createCancelOrderRequestProto(orderId: int, orderCancel: OrderCancelProto) -> CancelOrderRequestProto:
+def createCancelOrderRequestProto(orderId: int, orderCancel: OrderCancel) -> CancelOrderRequestProto:
     cancelOrderRequestProto = CancelOrderRequestProto()
     if isValidIntValue(orderId): cancelOrderRequestProto.orderId = orderId
     orderCancelProto = createOrderCancelProto(orderCancel)
@@ -397,16 +439,262 @@ def createCancelOrderRequestProto(orderId: int, orderCancel: OrderCancelProto) -
     return cancelOrderRequestProto
 
 @staticmethod
-def createGlobalCancelRequestProto(orderCancel: OrderCancelProto) -> GlobalCancelRequestProto:
+def createGlobalCancelRequestProto(orderCancel: OrderCancel) -> GlobalCancelRequestProto:
     globalCancelRequestProto = GlobalCancelRequestProto()
     orderCancelProto = createOrderCancelProto(orderCancel)
     if orderCancelProto is not None: globalCancelRequestProto.orderCancel.CopyFrom(orderCancelProto)
     return globalCancelRequestProto
 
 @staticmethod
-def createOrderCancelProto(orderCancel: OrderCancelProto) -> OrderCancelProto:
+def createOrderCancelProto(orderCancel: OrderCancel) -> OrderCancelProto:
+    if orderCancel is None:
+        return None
     orderCancelProto = OrderCancelProto()
     if orderCancel.manualOrderCancelTime: orderCancelProto.manualOrderCancelTime = orderCancel.manualOrderCancelTime
     if orderCancel.extOperator: orderCancelProto.extOperator = orderCancel.extOperator
     if isValidIntValue(orderCancel.manualOrderIndicator): orderCancelProto.manualOrderIndicator = orderCancel.manualOrderIndicator
     return orderCancelProto
+
+@staticmethod
+def createAllOpenOrdersRequestProto() -> AllOpenOrdersRequestProto:
+    allOpenOrdersRequestProto = AllOpenOrdersRequestProto()
+    return allOpenOrdersRequestProto
+
+@staticmethod
+def createAutoOpenOrdersRequestProto(autoBind: bool) -> AutoOpenOrdersRequestProto:
+    autoOpenOrdersRequestProto = AutoOpenOrdersRequestProto()
+    if autoBind: autoOpenOrdersRequestProto.autoBind = autoBind
+    return autoOpenOrdersRequestProto
+
+@staticmethod
+def createOpenOrdersRequestProto() -> OpenOrdersRequestProto:
+    openOrdersRequestProto = OpenOrdersRequestProto()
+    return openOrdersRequestProto
+
+@staticmethod
+def createCompletedOrdersRequestProto(apiOnly: bool) -> CompletedOrdersRequestProto:
+    completedOrdersRequestProto = CompletedOrdersRequestProto()
+    if apiOnly: completedOrdersRequestProto.apiOnly = apiOnly
+    return completedOrdersRequestProto
+
+@staticmethod
+def createContractDataRequestProto(reqId: int, contract: Contract) -> ContractDataRequestProto:
+    contractDataRequestProto = ContractDataRequestProto()
+    if isValidIntValue(reqId): contractDataRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: contractDataRequestProto.contract.CopyFrom(contractProto)
+    return contractDataRequestProto
+
+@staticmethod
+def createMarketDataRequestProto(reqId: int, contract: Contract, genericTickList: str, snapshot: bool, regulatorySnapshot: bool, marketDataOptionsList: TagValueList) -> MarketDataRequestProto:
+    marketDataRequestProto = MarketDataRequestProto()
+    if isValidIntValue(reqId): marketDataRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: marketDataRequestProto.contract.CopyFrom(contractProto)
+    if genericTickList: marketDataRequestProto.genericTickList = genericTickList
+    if snapshot: marketDataRequestProto.snapshot = snapshot
+    if regulatorySnapshot: marketDataRequestProto.regulatorySnapshot = regulatorySnapshot
+    fillTagValueList(marketDataOptionsList, marketDataRequestProto.marketDataOptions)
+    return marketDataRequestProto
+
+@staticmethod
+def createMarketDepthRequestProto(reqId: int, contract: Contract, numRows: int, isSmartDepth: bool, marketDepthOptionsList: TagValueList) -> MarketDepthRequestProto:
+    marketDepthRequestProto = MarketDepthRequestProto()
+    if isValidIntValue(reqId): marketDepthRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: marketDepthRequestProto.contract.CopyFrom(contractProto)
+    if isValidIntValue(numRows): marketDepthRequestProto.numRows = numRows
+    if isSmartDepth: marketDepthRequestProto.isSmartDepth = isSmartDepth
+    fillTagValueList(marketDepthOptionsList, marketDepthRequestProto.marketDepthOptions)
+    return marketDepthRequestProto
+
+@staticmethod
+def createMarketDataTypeRequestProto(marketDataType: int) -> MarketDataTypeRequestProto:
+    marketDataTypeRequestProto = MarketDataTypeRequestProto()
+    if isValidIntValue(marketDataType): marketDataTypeRequestProto.marketDataType = marketDataType
+    return marketDataTypeRequestProto
+
+@staticmethod
+def createCancelMarketDataProto(reqId: int) -> CancelMarketDataProto:
+    cancelMarketDataProto = CancelMarketDataProto()
+    if isValidIntValue(reqId): cancelMarketDataProto.reqId = reqId
+    return cancelMarketDataProto
+
+@staticmethod
+def createCancelMarketDepthProto(reqId: int, isSmartDepth: bool) -> CancelMarketDepthProto:
+    cancelMarketDepthProto = CancelMarketDepthProto()
+    if isValidIntValue(reqId): cancelMarketDepthProto.reqId = reqId
+    if isSmartDepth: cancelMarketDepthProto.isSmartDepth = isSmartDepth
+    return cancelMarketDepthProto
+
+@staticmethod
+def createAccountDataRequestProto(subscribe: bool, acctCode: str) -> AccountDataRequestProto:
+    accountDataRequestProto = AccountDataRequestProto()
+    if subscribe: accountDataRequestProto.subscribe = subscribe
+    if acctCode: accountDataRequestProto.acctCode = acctCode
+    return accountDataRequestProto
+
+@staticmethod
+def createManagedAccountsRequestProto() -> ManagedAccountsRequestProto:
+    managedAccountsRequestProto = ManagedAccountsRequestProto()
+    return managedAccountsRequestProto
+
+@staticmethod
+def createPositionsRequestProto() -> PositionsRequestProto:
+    positionsRequestProto = PositionsRequestProto()
+    return positionsRequestProto
+
+@staticmethod
+def createCancelPositionsRequestProto() -> CancelPositionsProto:
+    cancelPositionsProto = CancelPositionsProto()
+    return cancelPositionsProto
+
+@staticmethod
+def createAccountSummaryRequestProto(reqId: int, group: str, tags: str) -> AccountSummaryRequestProto:
+    accountSummaryRequestProto = AccountSummaryRequestProto()
+    if isValidIntValue(reqId): accountSummaryRequestProto.reqId = reqId
+    if group: accountSummaryRequestProto.group = group
+    if tags: accountSummaryRequestProto.tags = tags
+    return accountSummaryRequestProto
+
+@staticmethod
+def createCancelAccountSummaryRequestProto(reqId: int) -> CancelAccountSummaryProto:
+    cancelAccountSummaryProto = CancelAccountSummaryProto()
+    if isValidIntValue(reqId): cancelAccountSummaryProto.reqId = reqId
+    return cancelAccountSummaryProto
+
+@staticmethod
+def createPositionsMultiRequestProto(reqId: int, account: str, modelCode: str) -> PositionsMultiRequestProto:
+    positionsMultiRequestProto = PositionsMultiRequestProto()
+    if isValidIntValue(reqId): positionsMultiRequestProto.reqId = reqId
+    if account: positionsMultiRequestProto.account = account
+    if modelCode: positionsMultiRequestProto.modelCode = modelCode
+    return positionsMultiRequestProto
+
+@staticmethod
+def createCancelPositionsMultiRequestProto(reqId: int) -> CancelPositionsMultiProto:
+    cancelPositionsMultiProto = CancelPositionsMultiProto()
+    if isValidIntValue(reqId): cancelPositionsMultiProto.reqId = reqId
+    return cancelPositionsMultiProto
+
+@staticmethod
+def createAccountUpdatesMultiRequestProto(reqId: int, account: str, modelCode: str, ledgerAndNLV: bool) -> AccountUpdatesMultiRequestProto:
+    accountUpdatesMultiRequestProto = AccountUpdatesMultiRequestProto()
+    if isValidIntValue(reqId): accountUpdatesMultiRequestProto.reqId = reqId
+    if account: accountUpdatesMultiRequestProto.account = account
+    if modelCode: accountUpdatesMultiRequestProto.modelCode = modelCode
+    if ledgerAndNLV: accountUpdatesMultiRequestProto.ledgerAndNLV = ledgerAndNLV
+    return accountUpdatesMultiRequestProto
+
+@staticmethod
+def createCancelAccountUpdatesMultiRequestProto(reqId: int) -> CancelAccountUpdatesMultiProto:
+    cancelAccountUpdatesMultiProto = CancelAccountUpdatesMultiProto()
+    if isValidIntValue(reqId): cancelAccountUpdatesMultiProto.reqId = reqId
+    return cancelAccountUpdatesMultiProto
+
+@staticmethod
+def createHistoricalDataRequestProto(reqId: int, contract: Contract, endDateTime: str, duration: str, barSizeSetting: str, whatToShow: str, useRTH: bool, formatDate: int,
+                                    keepUpToDate: bool, chartOptionsList: TagValueList) -> HistoricalDataRequestProto:
+    historicalDataRequestProto = HistoricalDataRequestProto()
+    if isValidIntValue(reqId): historicalDataRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: historicalDataRequestProto.contract.CopyFrom(contractProto)
+    if endDateTime: historicalDataRequestProto.endDateTime = endDateTime
+    if duration: historicalDataRequestProto.duration = duration
+    if barSizeSetting: historicalDataRequestProto.barSizeSetting = barSizeSetting
+    if whatToShow: historicalDataRequestProto.whatToShow = whatToShow
+    if useRTH: historicalDataRequestProto.useRTH = useRTH
+    if isValidIntValue(formatDate): historicalDataRequestProto.formatDate = formatDate
+    if keepUpToDate: historicalDataRequestProto.keepUpToDate = keepUpToDate
+    fillTagValueList(chartOptionsList, historicalDataRequestProto.chartOptions)
+    return historicalDataRequestProto
+
+@staticmethod
+def createRealTimeBarsRequestProto(reqId: int, contract: Contract, barSize: int, whatToShow: str, useRTH: bool, realTimeBarsOptionsList: TagValueList) -> RealTimeBarsRequestProto:
+    realTimeBarsRequestProto = RealTimeBarsRequestProto()
+    if isValidIntValue(reqId): realTimeBarsRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: realTimeBarsRequestProto.contract.CopyFrom(contractProto)
+    if isValidIntValue(barSize): realTimeBarsRequestProto.barSize = barSize
+    if whatToShow: realTimeBarsRequestProto.whatToShow = whatToShow
+    if useRTH: realTimeBarsRequestProto.useRTH = useRTH
+    fillTagValueList(realTimeBarsOptionsList, realTimeBarsRequestProto.realTimeBarsOptions)
+    return realTimeBarsRequestProto
+
+@staticmethod
+def createHeadTimestampRequestProto(reqId: int, contract: Contract, whatToShow: str, useRTH: bool, formatDate: int) -> HeadTimestampRequestProto:
+    headTimestampRequestProto = HeadTimestampRequestProto()
+    if isValidIntValue(reqId): headTimestampRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: headTimestampRequestProto.contract.CopyFrom(contractProto)
+    if whatToShow: headTimestampRequestProto.whatToShow = whatToShow
+    if useRTH: headTimestampRequestProto.useRTH = useRTH
+    if isValidIntValue(formatDate): headTimestampRequestProto.formatDate = formatDate
+    return headTimestampRequestProto
+
+@staticmethod
+def createHistogramDataRequestProto(reqId: int, contract: Contract, useRTH: bool, timePeriod: str) -> HistogramDataRequestProto:
+    histogramDataRequestProto = HistogramDataRequestProto()
+    if isValidIntValue(reqId): histogramDataRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: histogramDataRequestProto.contract.CopyFrom(contractProto)
+    if useRTH: histogramDataRequestProto.useRTH = useRTH
+    if timePeriod: histogramDataRequestProto.timePeriod = timePeriod
+    return histogramDataRequestProto
+
+@staticmethod
+def createHistoricalTicksRequestProto(reqId: int, contract: Contract, startDateTime: str, endDateTime: str, numberOfTicks: int, whatToShow: str, useRTH: bool, ignoreSize: bool,
+                                     miscOptionsList: TagValueList) -> HistoricalTicksRequestProto:
+    historicalTicksRequestProto = HistoricalTicksRequestProto()
+    if isValidIntValue(reqId): historicalTicksRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: historicalTicksRequestProto.contract.CopyFrom(contractProto)
+    if startDateTime: historicalTicksRequestProto.startDateTime = startDateTime
+    if endDateTime: historicalTicksRequestProto.endDateTime = endDateTime
+    if isValidIntValue(numberOfTicks): historicalTicksRequestProto.numberOfTicks = numberOfTicks
+    if whatToShow: historicalTicksRequestProto.whatToShow = whatToShow
+    if useRTH: historicalTicksRequestProto.useRTH = useRTH
+    if ignoreSize: historicalTicksRequestProto.ignoreSize = ignoreSize
+    fillTagValueList(miscOptionsList, historicalTicksRequestProto.miscOptions)
+    return historicalTicksRequestProto
+
+@staticmethod
+def createTickByTickRequestProto(reqId: int, contract: Contract, tickType: str, numberOfTicks: int, ignoreSize: bool) -> TickByTickRequestProto:
+    tickByTickRequestProto = TickByTickRequestProto()
+    if isValidIntValue(reqId): tickByTickRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: tickByTickRequestProto.contract.CopyFrom(contractProto)
+    if tickType: tickByTickRequestProto.tickType = tickType
+    if isValidIntValue(numberOfTicks): tickByTickRequestProto.numberOfTicks = numberOfTicks
+    if ignoreSize: tickByTickRequestProto.ignoreSize = ignoreSize
+    return tickByTickRequestProto
+
+@staticmethod
+def createCancelHistoricalDataProto(reqId: int) -> CancelHistoricalDataProto:
+    cancelHistoricalDataProto = CancelHistoricalDataProto()
+    if isValidIntValue(reqId): cancelHistoricalDataProto.reqId = reqId
+    return cancelHistoricalDataProto
+
+@staticmethod
+def createCancelRealTimeBarsProto(reqId: int) -> CancelRealTimeBarsProto:
+    cancelRealTimeBarsProto = CancelRealTimeBarsProto()
+    if isValidIntValue(reqId): cancelRealTimeBarsProto.reqId = reqId
+    return cancelRealTimeBarsProto
+
+@staticmethod
+def createCancelHeadTimestampProto(reqId: int) -> CancelHeadTimestampProto:
+    cancelHeadTimestampProto = CancelHeadTimestampProto()
+    if isValidIntValue(reqId): cancelHeadTimestampProto.reqId = reqId
+    return cancelHeadTimestampProto
+
+@staticmethod
+def createCancelHistogramDataProto(reqId: int) -> CancelHistogramDataProto:
+    cancelHistogramDataProto = CancelHistogramDataProto()
+    if isValidIntValue(reqId): cancelHistogramDataProto.reqId = reqId
+    return cancelHistogramDataProto
+
+@staticmethod
+def createCancelTickByTickProto(reqId: int) -> CancelTickByTickProto:
+    cancelTickByTickProto = CancelTickByTickProto()
+    if isValidIntValue(reqId): cancelTickByTickProto.reqId = reqId
+    return cancelTickByTickProto

@@ -22,13 +22,14 @@ from ibapi.softdollartier import SoftDollarTier
 from ibapi.ticktype import *  # @UnusedWildImport
 from ibapi.tag_value import TagValue
 from ibapi.scanner import ScanData
-from ibapi.errors import BAD_MESSAGE
+from ibapi.errors import BAD_MESSAGE, UNKNOWN_ID
 from ibapi.common import *  # @UnusedWildImport
 from ibapi.orderdecoder import OrderDecoder
 from ibapi.contract import FundDistributionPolicyIndicator
 from ibapi.contract import FundAssetType
 from ibapi.ineligibility_reason import IneligibilityReason
-from ibapi.decoder_utils import decodeContract, decodeOrder, decodeExecution, decodeOrderState
+from ibapi.decoder_utils import decodeContract, decodeOrder, decodeExecution, decodeOrderState, decodeContractDetails, setLastTradeDate
+from ibapi.decoder_utils import decodeHistoricalDataBar, decodeHistogramDataEntry, decodeHistoricalTickLast, decodeHistoricalTickBidAsk, decodeHistoricalTick
 
 from ibapi.protobuf.OrderStatus_pb2 import OrderStatus as OrderStatusProto
 from ibapi.protobuf.OpenOrder_pb2 import OpenOrder as OpenOrderProto
@@ -36,6 +37,49 @@ from ibapi.protobuf.OpenOrdersEnd_pb2 import OpenOrdersEnd as OpenOrdersEndProto
 from ibapi.protobuf.ErrorMessage_pb2 import ErrorMessage as ErrorMessageProto
 from ibapi.protobuf.ExecutionDetails_pb2 import ExecutionDetails as ExecutionDetailsProto
 from ibapi.protobuf.ExecutionDetailsEnd_pb2 import ExecutionDetailsEnd as ExecutionDetailsEndProto
+from ibapi.protobuf.CompletedOrder_pb2 import CompletedOrder as CompletedOrderProto
+from ibapi.protobuf.CompletedOrdersEnd_pb2 import CompletedOrdersEnd as CompletedOrdersEndProto
+from ibapi.protobuf.OrderBound_pb2 import OrderBound as OrderBoundProto
+from ibapi.protobuf.ContractData_pb2 import ContractData as ContractDataProto
+from ibapi.protobuf.ContractDataEnd_pb2 import ContractDataEnd as ContractDataEndProto
+from ibapi.protobuf.CompletedOrder_pb2 import CompletedOrder as CompletedOrderProto
+from ibapi.protobuf.CompletedOrdersEnd_pb2 import CompletedOrdersEnd as CompletedOrdersEndProto
+from ibapi.protobuf.OrderBound_pb2 import OrderBound as OrderBoundProto
+from ibapi.protobuf.ContractData_pb2 import ContractData as ContractDataProto
+from ibapi.protobuf.ContractDataEnd_pb2 import ContractDataEnd as ContractDataEndProto
+from ibapi.protobuf.TickPrice_pb2 import TickPrice as TickPriceProto
+from ibapi.protobuf.TickSize_pb2 import TickSize as TickSizeProto
+from ibapi.protobuf.TickOptionComputation_pb2 import TickOptionComputation as TickOptionComputationProto
+from ibapi.protobuf.TickGeneric_pb2 import TickGeneric as TickGenericProto
+from ibapi.protobuf.TickString_pb2 import TickString as TickStringProto
+from ibapi.protobuf.TickSnapshotEnd_pb2 import TickSnapshotEnd as TickSnapshotEndProto
+from ibapi.protobuf.MarketDepth_pb2 import MarketDepth as MarketDepthProto
+from ibapi.protobuf.MarketDepthL2_pb2 import MarketDepthL2 as MarketDepthL2Proto
+from ibapi.protobuf.MarketDataType_pb2 import MarketDataType as MarketDataTypeProto
+from ibapi.protobuf.TickReqParams_pb2 import TickReqParams as TickReqParamsProto
+from ibapi.protobuf.AccountValue_pb2 import AccountValue as AccountValueProto
+from ibapi.protobuf.PortfolioValue_pb2 import PortfolioValue as PortfolioValueProto
+from ibapi.protobuf.AccountUpdateTime_pb2 import AccountUpdateTime as AccountUpdateTimeProto
+from ibapi.protobuf.AccountDataEnd_pb2 import AccountDataEnd as AccountDataEndProto
+from ibapi.protobuf.ManagedAccounts_pb2 import ManagedAccounts as ManagedAccountsProto
+from ibapi.protobuf.Position_pb2 import Position as PositionProto
+from ibapi.protobuf.PositionEnd_pb2 import PositionEnd as PositionEndProto
+from ibapi.protobuf.AccountSummary_pb2 import AccountSummary as AccountSummaryProto
+from ibapi.protobuf.AccountSummaryEnd_pb2 import AccountSummaryEnd as AccountSummaryEndProto
+from ibapi.protobuf.PositionMulti_pb2 import PositionMulti as PositionMultiProto
+from ibapi.protobuf.PositionMultiEnd_pb2 import PositionMultiEnd as PositionMultiEndProto
+from ibapi.protobuf.AccountUpdateMulti_pb2 import AccountUpdateMulti as AccountUpdateMultiProto
+from ibapi.protobuf.AccountUpdateMultiEnd_pb2 import AccountUpdateMultiEnd as AccountUpdateMultiEndProto
+from ibapi.protobuf.HistoricalData_pb2 import HistoricalData as HistoricalDataProto
+from ibapi.protobuf.HistoricalDataUpdate_pb2 import HistoricalDataUpdate as HistoricalDataUpdateProto
+from ibapi.protobuf.HistoricalDataEnd_pb2 import HistoricalDataEnd as HistoricalDataEndProto
+from ibapi.protobuf.RealTimeBarTick_pb2 import RealTimeBarTick as RealTimeBarTickProto
+from ibapi.protobuf.HeadTimestamp_pb2 import HeadTimestamp as HeadTimestampProto
+from ibapi.protobuf.HistogramData_pb2 import HistogramData as HistogramDataProto
+from ibapi.protobuf.HistoricalTicks_pb2 import HistoricalTicks as HistoricalTicksProto
+from ibapi.protobuf.HistoricalTicksBidAsk_pb2 import HistoricalTicksBidAsk as HistoricalTicksBidAskProto
+from ibapi.protobuf.HistoricalTicksLast_pb2 import HistoricalTicksLast as HistoricalTicksLastProto
+from ibapi.protobuf.TickByTickData_pb2 import TickByTickData as TickByTickDataProto
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +142,41 @@ class Decoder(Object):
         if sizeTickType != TickTypeEnum.NOT_SET:
             self.wrapper.tickSize(reqId, sizeTickType, size)
 
+    def processTickPriceMsgProtoBuf(self, protobuf):
+        tickPriceProto = TickPriceProto()
+        tickPriceProto.ParseFromString(protobuf)
+
+        self.wrapper.tickPriceProtoBuf(tickPriceProto)
+
+        reqId = tickPriceProto.reqId if tickPriceProto.HasField('reqId') else NO_VALID_ID
+        tickType = tickPriceProto.tickType if tickPriceProto.HasField('tickType') else UNSET_INTEGER
+        price = tickPriceProto.price if tickPriceProto.HasField('price') else UNSET_DOUBLE
+        size = Decimal(tickPriceProto.size) if tickPriceProto.HasField('size') else UNSET_DECIMAL
+        attrMask = tickPriceProto.attrMask if tickPriceProto.HasField('attrMask') else UNSET_INTEGER
+        attrib = TickAttrib()
+        attrib.canAutoExecute = attrMask & 1 != 0
+        attrib.pastLimit = attrMask & 2 != 0
+        attrib.preOpen = attrMask & 4 != 0
+
+        self.wrapper.tickPrice(reqId, tickType, price, attrib)
+
+        sizeTickType = TickTypeEnum.NOT_SET
+        if TickTypeEnum.BID == tickType:
+            sizeTickType = TickTypeEnum.BID_SIZE
+        elif TickTypeEnum.ASK == tickType:
+            sizeTickType = TickTypeEnum.ASK_SIZE
+        elif TickTypeEnum.LAST == tickType:
+            sizeTickType = TickTypeEnum.LAST_SIZE
+        elif TickTypeEnum.DELAYED_BID == tickType:
+            sizeTickType = TickTypeEnum.DELAYED_BID_SIZE
+        elif TickTypeEnum.DELAYED_ASK == tickType:
+            sizeTickType = TickTypeEnum.DELAYED_ASK_SIZE
+        elif TickTypeEnum.DELAYED_LAST == tickType:
+            sizeTickType = TickTypeEnum.DELAYED_LAST_SIZE
+
+        if sizeTickType != TickTypeEnum.NOT_SET:
+            self.wrapper.tickSize(reqId, sizeTickType, size)
+
     def processTickSizeMsg(self, fields):
         decode(int, fields)
 
@@ -107,6 +186,19 @@ class Decoder(Object):
 
         if sizeTickType != TickTypeEnum.NOT_SET:
             self.wrapper.tickSize(reqId, sizeTickType, size)
+
+    def processTickSizeMsgProtoBuf(self, protobuf):
+        tickSizeProto = TickSizeProto()
+        tickSizeProto.ParseFromString(protobuf)
+
+        self.wrapper.tickSizeProtoBuf(tickSizeProto)
+
+        reqId = tickSizeProto.reqId if tickSizeProto.HasField('reqId') else NO_VALID_ID
+        tickType = tickSizeProto.tickType if tickSizeProto.HasField('tickType') else UNSET_INTEGER
+        size = Decimal(tickSizeProto.size) if tickSizeProto.HasField('size') else UNSET_DECIMAL
+
+        if tickType != TickTypeEnum.NOT_SET:
+            self.wrapper.tickSize(reqId, tickType, size)
 
     def processOrderStatusMsg(self, fields):
         if self.serverVersion < MIN_SERVER_VER_MARKET_CAP_PRICE:
@@ -280,7 +372,7 @@ class Decoder(Object):
         # decode order fields
         if not openOrderProto.HasField('order'):
             return
-        order = decodeOrder(openOrderProto.contract, openOrderProto.order)
+        order = decodeOrder(orderId, openOrderProto.contract, openOrderProto.order)
         
         # decode order state fields
         if not openOrderProto.HasField('orderState'):
@@ -341,6 +433,27 @@ class Decoder(Object):
             realizedPNL,
             accountName,
         )
+
+    def processPortfolioValueMsgProtoBuf(self, protobuf):
+        portfolioValueProto = PortfolioValueProto()
+        portfolioValueProto.ParseFromString(protobuf)
+
+        self.wrapper.updatePortfolioProtoBuf(portfolioValueProto)
+
+        # decode contract fields
+        if not portfolioValueProto.HasField('contract'):
+            return
+        contract = decodeContract(portfolioValueProto.contract)
+
+        position = Decimal(portfolioValueProto.position) if portfolioValueProto.HasField('position') else UNSET_DECIMAL
+        marketPrice = portfolioValueProto.marketPrice if portfolioValueProto.HasField('marketPrice') else 0
+        marketValue = portfolioValueProto.marketValue if portfolioValueProto.HasField('marketValue') else 0
+        averageCost = portfolioValueProto.averageCost if portfolioValueProto.HasField('averageCost') else 0
+        unrealizedPNL = portfolioValueProto.unrealizedPNL if portfolioValueProto.HasField('unrealizedPNL') else 0
+        realizedPNL = portfolioValueProto.realizedPNL if portfolioValueProto.HasField('realizedPNL') else 0
+        accountName = portfolioValueProto.accountName if portfolioValueProto.HasField('accountName') else ""
+
+        self.wrapper.updatePortfolio(contract, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountName)
 
     def processContractDataMsg(self, fields):
         version = 8
@@ -466,6 +579,21 @@ class Decoder(Object):
 
         self.wrapper.contractDetails(reqId, contract)
 
+    def processContractDataMsgProtoBuf(self, protobuf):
+        contractDataProto = ContractDataProto()
+        contractDataProto.ParseFromString(protobuf)
+
+        self.wrapper.contractDataProtoBuf(contractDataProto)
+
+        reqId = contractDataProto.reqId if contractDataProto.HasField('reqId') else NO_VALID_ID
+
+        # decode contract details fields
+        if not contractDataProto.HasField('contract') or not contractDataProto.HasField('contractDetails'):
+            return
+        contractDetails = decodeContractDetails(contractDataProto.contract, contractDataProto.contractDetails, False)
+
+        self.wrapper.contractDetails(reqId, contractDetails)
+
     def processBondContractDataMsg(self, fields):
         version = 6
         if self.serverVersion < MIN_SERVER_VER_SIZE_RULES:
@@ -537,6 +665,31 @@ class Decoder(Object):
             contract.suggestedSizeIncrement = decode(Decimal, fields)
 
         self.wrapper.bondContractDetails(reqId, contract)
+
+    def processBondContractDataMsgProtoBuf(self, protobuf):
+        contractDataProto = ContractDataProto()
+        contractDataProto.ParseFromString(protobuf)
+
+        self.wrapper.bondContractDataProtoBuf(contractDataProto)
+
+        reqId = contractDataProto.reqId if contractDataProto.HasField('reqId') else NO_VALID_ID
+
+        # decode contract details fields
+        if not contractDataProto.HasField('contract') or not contractDataProto.HasField('contractDetails'):
+            return
+        contractDetails = decodeContractDetails(contractDataProto.contract, contractDataProto.contractDetails, False)
+
+        self.wrapper.bondContractDetails(reqId, contractDetails)
+
+    def processContractDataEndMsgProtoBuf(self, protobuf):
+        contractDataEndProto = ContractDataEndProto()
+        contractDataEndProto.ParseFromString(protobuf)
+
+        self.wrapper.contractDataEndProtoBuf(contractDataEndProto)
+
+        reqId = contractDataEndProto.reqId if contractDataEndProto.HasField('reqId') else NO_VALID_ID
+
+        self.wrapper.contractDetailsEnd(reqId)
 
     def processScannerDataMsg(self, fields):
         decode(int, fields)
@@ -645,7 +798,7 @@ class Decoder(Object):
 
         self.wrapper.executionDetailsEndProtoBuf(executionDetailsEndProto)
 
-        reqId = executionDetailsEndProto.reqId if executionDetailsEndProto.HasField('reqId') else 0
+        reqId = executionDetailsEndProto.reqId if executionDetailsEndProto.HasField('reqId') else NO_VALID_ID
 
         self.wrapper.execDetailsEnd(reqId)
 
@@ -655,7 +808,7 @@ class Decoder(Object):
 
         self.wrapper.executionDetailsProtoBuf(executionDetailsProto)
 
-        reqId = executionDetailsProto.reqId if executionDetailsProto.HasField('reqId') else 0
+        reqId = executionDetailsProto.reqId if executionDetailsProto.HasField('reqId') else NO_VALID_ID
 
         # decode contract fields
         if not executionDetailsProto.HasField('contract'):
@@ -702,12 +855,38 @@ class Decoder(Object):
             # send end of dataset marker
             self.wrapper.historicalDataEnd(reqId, startDateStr, endDateStr)
 
+    def processHistoricalDataMsgProtoBuf(self, protobuf):
+        historicalDataProto = HistoricalDataProto()
+        historicalDataProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalDataProtoBuf(historicalDataProto)
+
+        reqId = historicalDataProto.reqId if historicalDataProto.HasField('reqId') else NO_VALID_ID
+
+        if not historicalDataProto.historicalDataBars:
+            return
+
+        for historicalDataBarProto in historicalDataProto.historicalDataBars:
+            bar = decodeHistoricalDataBar(historicalDataBarProto)
+            self.wrapper.historicalData(reqId, bar)
 
     def processHistoricalDataEndMsg(self, fields):
         reqId = decode(int, fields)
         startDateStr = decode(str, fields)
         endDateStr = decode(str, fields)
         
+        self.wrapper.historicalDataEnd(reqId, startDateStr, endDateStr)
+
+    def processHistoricalDataEndMsgProtoBuf(self, protobuf):
+        historicalDataEndProto = HistoricalDataEndProto()
+        historicalDataEndProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalDataEndProtoBuf(historicalDataEndProto)
+
+        reqId = historicalDataEndProto.reqId if historicalDataEndProto.HasField('reqId') else NO_VALID_ID
+        startDateStr = historicalDataEndProto.startDateStr if historicalDataEndProto.HasField('startDateStr') else ""
+        endDateStr = historicalDataEndProto.endDateStr if historicalDataEndProto.HasField('endDateStr') else ""
+
         self.wrapper.historicalDataEnd(reqId, startDateStr, endDateStr)
 
     def processHistoricalDataUpdateMsg(self, fields):
@@ -721,6 +900,20 @@ class Decoder(Object):
         bar.low = decode(float, fields)
         bar.wap = decode(Decimal, fields)
         bar.volume = decode(Decimal, fields)
+        self.wrapper.historicalDataUpdate(reqId, bar)
+
+    def processHistoricalDataUpdateMsgProtoBuf(self, protobuf):
+        historicalDataUpdateProto = HistoricalDataUpdateProto()
+        historicalDataUpdateProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalDataUpdateProtoBuf(historicalDataUpdateProto)
+
+        reqId = historicalDataUpdateProto.reqId if historicalDataUpdateProto.HasField('reqId') else NO_VALID_ID
+    
+        if not historicalDataUpdateProto.HasField('historicalDataBar'):
+            return
+        
+        bar = decodeHistoricalDataBar(historicalDataUpdateProto.historicalDataBar)
         self.wrapper.historicalDataUpdate(reqId, bar)
 
     def processRealTimeBarMsg(self, fields):
@@ -748,6 +941,24 @@ class Decoder(Object):
             bar.wap,
             bar.count,
         )
+
+    def processRealTimeBarMsgProtoBuf(self, protobuf):
+        realTimeBarTickProto = RealTimeBarTickProto()
+        realTimeBarTickProto.ParseFromString(protobuf)
+
+        self.wrapper.realTimeBarTickProtoBuf(realTimeBarTickProto)
+
+        reqId = realTimeBarTickProto.reqId if realTimeBarTickProto.HasField('reqId') else NO_VALID_ID
+        time = realTimeBarTickProto.time if realTimeBarTickProto.HasField('time') else 0
+        open_ = realTimeBarTickProto.open if realTimeBarTickProto.HasField('open') else 0.0
+        high = realTimeBarTickProto.high if realTimeBarTickProto.HasField('high') else 0.0
+        low = realTimeBarTickProto.low if realTimeBarTickProto.HasField('low') else 0.0
+        close = realTimeBarTickProto.close if realTimeBarTickProto.HasField('close') else 0.0
+        volume = Decimal(realTimeBarTickProto.volume) if realTimeBarTickProto.HasField('volume') else UNSET_DECIMAL
+        wap = Decimal(realTimeBarTickProto.WAP) if realTimeBarTickProto.HasField('WAP') else UNSET_DECIMAL
+        count = realTimeBarTickProto.count if realTimeBarTickProto.HasField('count') else 0
+
+        self.wrapper.realtimeBar(reqId, time, open_, high, low, close, volume, wap, count)
 
     def processTickOptionComputationMsg(self, fields):
         version = self.serverVersion
@@ -818,6 +1029,42 @@ class Decoder(Object):
             undPrice,
         )
 
+    def processTickOptionComputationMsgProtoBuf(self, protobuf):
+        tickOptionComputationProto = TickOptionComputationProto()
+        tickOptionComputationProto.ParseFromString(protobuf)
+
+        self.wrapper.tickOptionComputationProtoBuf(tickOptionComputationProto)
+
+        reqId = tickOptionComputationProto.reqId if tickOptionComputationProto.HasField('reqId') else NO_VALID_ID
+        tickType = tickOptionComputationProto.tickType if tickOptionComputationProto.HasField('tickType') else UNSET_INTEGER
+        tickAttrib = tickOptionComputationProto.tickAttrib if tickOptionComputationProto.HasField('tickAttrib') else UNSET_INTEGER
+        impliedVol = tickOptionComputationProto.impliedVol if tickOptionComputationProto.HasField('impliedVol') else None
+        if impliedVol < 0:  # -1 is the "not computed" indicator
+            impliedVol = None
+        delta = tickOptionComputationProto.delta if tickOptionComputationProto.HasField('delta') else None
+        if delta == -2:  # -2 is the "not computed" indicator
+            delta = None
+        optPrice = tickOptionComputationProto.optPrice if tickOptionComputationProto.HasField('optPrice') else None
+        if optPrice == -1:  # -1 is the "not computed" indicator
+            optPrice = None
+        pvDividend = tickOptionComputationProto.pvDividend if tickOptionComputationProto.HasField('pvDividend') else None
+        if pvDividend == -1:  # -1 is the "not computed" indicator
+            pvDividend = None
+        gamma = tickOptionComputationProto.gamma if tickOptionComputationProto.HasField('gamma') else None
+        if gamma == -2:  # -2 is the "not yet computed" indicator
+            gamma = None
+        vega = tickOptionComputationProto.vega if tickOptionComputationProto.HasField('vega') else None
+        if vega == -2:  # -2 is the "not yet computed" indicator
+            vega = None
+        theta = tickOptionComputationProto.theta if tickOptionComputationProto.HasField('theta') else None
+        if theta == -2:  # -2 is the "not yet computed" indicator
+            theta = None
+        undPrice = tickOptionComputationProto.undPrice if tickOptionComputationProto.HasField('undPrice') else None
+        if undPrice == -1:  # -1 is the "not computed" indicator
+            undPrice = None
+
+        self.wrapper.tickOptionComputation(reqId, tickType, tickAttrib, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice)
+
     def processDeltaNeutralValidationMsg(self, fields):
         decode(int, fields)
         reqId = decode(int, fields)
@@ -834,6 +1081,17 @@ class Decoder(Object):
         decode(int, fields)
         reqId = decode(int, fields)
         marketDataType = decode(int, fields)
+
+        self.wrapper.marketDataType(reqId, marketDataType)
+
+    def processMarketDataTypeMsgProtoBuf(self, protobuf):
+        marketDataTypeProto = MarketDataTypeProto()
+        marketDataTypeProto.ParseFromString(protobuf)
+
+        self.wrapper.updateMarketDataTypeProtoBuf(marketDataTypeProto)
+
+        reqId = marketDataTypeProto.reqId if marketDataTypeProto.HasField('reqId') else NO_VALID_ID
+        marketDataType = marketDataTypeProto.marketDataType if marketDataTypeProto.HasField('marketDataType') else UNSET_INTEGER
 
         self.wrapper.marketDataType(reqId, marketDataType)
 
@@ -878,6 +1136,23 @@ class Decoder(Object):
 
         self.wrapper.position(account, contract, position, avgCost)
 
+    def processPositionMsgProtoBuf(self, protobuf):
+        positionProto = PositionProto()
+        positionProto.ParseFromString(protobuf)
+
+        self.wrapper.positionProtoBuf(positionProto)
+
+        # decode contract fields
+        if not positionProto.HasField('contract'):
+            return
+        contract = decodeContract(positionProto.contract)
+
+        position = Decimal(positionProto.position) if positionProto.HasField('position') else UNSET_DECIMAL
+        avgCost = positionProto.avgCost if positionProto.HasField('avgCost') else 0
+        account = positionProto.account if positionProto.HasField('account') else ""
+
+        self.wrapper.position(account, contract, position, avgCost)
+
     def processPositionMultiMsg(self, fields):
         decode(int, fields)
         reqId = decode(int, fields)
@@ -903,6 +1178,26 @@ class Decoder(Object):
         self.wrapper.positionMulti(
             reqId, account, modelCode, contract, position, avgCost
         )
+
+    def processPositionMultiMsgProtoBuf(self, protobuf):
+        positionMultiProto = PositionMultiProto()
+        positionMultiProto.ParseFromString(protobuf)
+
+        self.wrapper.positionMultiProtoBuf(positionMultiProto)
+
+        reqId = positionMultiProto.reqId if positionMultiProto.HasField('reqId') else NO_VALID_ID
+        account = positionMultiProto.account if positionMultiProto.HasField('account') else ""
+        modelCode = positionMultiProto.modelCode if positionMultiProto.HasField('modelCode') else ""
+
+        # decode contract fields
+        if not positionMultiProto.HasField('contract'):
+            return
+        contract = decodeContract(positionMultiProto.contract)
+
+        position = Decimal(positionMultiProto.position) if positionMultiProto.HasField('position') else UNSET_DECIMAL
+        avgCost = positionMultiProto.avgCost if positionMultiProto.HasField('avgCost') else 0
+
+        self.wrapper.positionMulti(reqId, account, modelCode, contract, position, avgCost)
 
     def processSecurityDefinitionOptionParameterMsg(self, fields):
         reqId = decode(int, fields)
@@ -1008,6 +1303,19 @@ class Decoder(Object):
         snapshotPermissions = decode(int, fields)
         self.wrapper.tickReqParams(tickerId, minTick, bboExchange, snapshotPermissions)
 
+    def processTickReqParamsMsgProtoBuf(self, protobuf):
+        tickReqParamsProto = TickReqParamsProto()
+        tickReqParamsProto.ParseFromString(protobuf)
+
+        self.wrapper.tickReqParamsProtoBuf(tickReqParamsProto)
+
+        reqId = tickReqParamsProto.reqId if tickReqParamsProto.HasField('reqId') else NO_VALID_ID
+        minTick = float(tickReqParamsProto.minTick) if tickReqParamsProto.HasField('minTick') else UNSET_DOUBLE
+        bboExchange = tickReqParamsProto.bboExchange if tickReqParamsProto.HasField('bboExchange') else ""
+        snapshotPermissions = tickReqParamsProto.snapshotPermissions if tickReqParamsProto.HasField('snapshotPermissions') else UNSET_INTEGER
+
+        self.wrapper.tickReqParams(reqId, minTick, bboExchange, snapshotPermissions)
+
     def processMktDepthExchanges(self, fields):
         depthMktDataDescriptions = []
         nDepthMktDataDescriptions = decode(int, fields)
@@ -1030,6 +1338,17 @@ class Decoder(Object):
     def processHeadTimestamp(self, fields):
         reqId = decode(int, fields)
         headTimestamp = decode(str, fields)
+        self.wrapper.headTimestamp(reqId, headTimestamp)
+
+    def processHeadTimestampMsgProtoBuf(self, protobuf):
+        headTimestampProto = HeadTimestampProto()
+        headTimestampProto.ParseFromString(protobuf)
+
+        self.wrapper.headTimestampProtoBuf(headTimestampProto)
+
+        reqId = headTimestampProto.reqId if headTimestampProto.HasField('reqId') else NO_VALID_ID
+        headTimestamp = headTimestampProto.headTimestamp if headTimestampProto.HasField('headTimestamp') else ""
+
         self.wrapper.headTimestamp(reqId, headTimestamp)
 
     def processTickNews(self, fields):
@@ -1084,6 +1403,22 @@ class Decoder(Object):
             dataPoint.price = decode(float, fields)
             dataPoint.size = decode(Decimal, fields)
             histogram.append(dataPoint)
+
+        self.wrapper.histogramData(reqId, histogram)
+
+    def processHistogramDataMsgProtoBuf(self, protobuf):
+        histogramDataProto = HistogramDataProto()
+        histogramDataProto.ParseFromString(protobuf)
+
+        self.wrapper.histogramDataProtoBuf(histogramDataProto)
+
+        reqId = histogramDataProto.reqId if histogramDataProto.HasField('reqId') else NO_VALID_ID
+    
+        histogram = []
+        if histogramDataProto.histogramDataEntries:
+            for histogramDataEntryProto in histogramDataProto.histogramDataEntries:
+                histogramEntry = decodeHistogramDataEntry(histogramDataEntryProto)
+                histogram.append(histogramEntry)
 
         self.wrapper.histogramData(reqId, histogram)
 
@@ -1165,6 +1500,23 @@ class Decoder(Object):
 
         self.wrapper.historicalTicks(reqId, ticks, done)
 
+    def processHistoricalTicksMsgProtoBuf(self, protobuf):
+        historicalTicksProto = HistoricalTicksProto()
+        historicalTicksProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalTicksProtoBuf(historicalTicksProto)
+
+        reqId = historicalTicksProto.reqId if historicalTicksProto.HasField('reqId') else NO_VALID_ID
+        isDone = historicalTicksProto.isDone if historicalTicksProto.HasField('isDone') else False
+    
+        historicalTicks = []
+        if historicalTicksProto.historicalTicks:
+            for historicalTickProto in historicalTicksProto.historicalTicks:
+                historicalTick = decodeHistoricalTick(historicalTickProto)
+                historicalTicks.append(historicalTick)
+
+        self.wrapper.historicalTicks(reqId, historicalTicks, isDone)
+
     def processHistoricalTicksBidAsk(self, fields):
         reqId = decode(int, fields)
         tickCount = decode(int, fields)
@@ -1189,6 +1541,23 @@ class Decoder(Object):
 
         self.wrapper.historicalTicksBidAsk(reqId, ticks, done)
 
+    def processHistoricalTicksBidAskMsgProtoBuf(self, protobuf):
+        historicalTicksBidAskProto = HistoricalTicksBidAskProto()
+        historicalTicksBidAskProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalTicksBidAskProtoBuf(historicalTicksBidAskProto)
+
+        reqId = historicalTicksBidAskProto.reqId if historicalTicksBidAskProto.HasField('reqId') else NO_VALID_ID
+        isDone = historicalTicksBidAskProto.isDone if historicalTicksBidAskProto.HasField('isDone') else False
+    
+        historicalTicksBidAsk = []
+        if historicalTicksBidAskProto.historicalTicksBidAsk:
+            for historicalTickBidAskProto in historicalTicksBidAskProto.historicalTicksBidAsk:
+                historicalTickBidAsk = decodeHistoricalTickBidAsk(historicalTickBidAskProto)
+                historicalTicksBidAsk.append(historicalTickBidAsk)
+
+        self.wrapper.historicalTicksBidAsk(reqId, historicalTicksBidAsk, isDone)
+
     def processHistoricalTicksLast(self, fields):
         reqId = decode(int, fields)
         tickCount = decode(int, fields)
@@ -1212,6 +1581,23 @@ class Decoder(Object):
         done = decode(bool, fields)
 
         self.wrapper.historicalTicksLast(reqId, ticks, done)
+
+    def processHistoricalTicksLastMsgProtoBuf(self, protobuf):
+        historicalTicksLastProto = HistoricalTicksLastProto()
+        historicalTicksLastProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalTicksLastProtoBuf(historicalTicksLastProto)
+
+        reqId = historicalTicksLastProto.reqId if historicalTicksLastProto.HasField('reqId') else NO_VALID_ID
+        isDone = historicalTicksLastProto.isDone if historicalTicksLastProto.HasField('isDone') else False
+    
+        historicalTicksLast = []
+        if historicalTicksLastProto.historicalTicksLast:
+            for historicalTickLastProto in historicalTicksLastProto.historicalTicksLast:
+                historicalTickLast = decodeHistoricalTickLast(historicalTickLastProto)
+                historicalTicksLast.append(historicalTickLast)
+
+        self.wrapper.historicalTicksLast(reqId, historicalTicksLast, isDone)
 
     def processTickByTickMsg(self, fields):
         reqId = decode(int, fields)
@@ -1263,10 +1649,67 @@ class Decoder(Object):
 
             self.wrapper.tickByTickMidPoint(reqId, time, midPoint)
 
+    def processTickByTickMsgProtoBuf(self, protobuf):
+        tickByTickDataProto = TickByTickDataProto()
+        tickByTickDataProto.ParseFromString(protobuf)
+
+        self.wrapper.tickByTickDataProtoBuf(tickByTickDataProto)
+
+        reqId = tickByTickDataProto.reqId if tickByTickDataProto.HasField('reqId') else NO_VALID_ID
+        tickType = tickByTickDataProto.tickType if tickByTickDataProto.HasField('tickType') else 0
+
+        if tickType == 0:
+            # None
+            pass
+        elif tickType == 1 or tickType == 2:
+            # Last or AllLast
+            if tickByTickDataProto.HasField('historicalTickLast'):
+                historicalTickLast = decodeHistoricalTickLast(tickByTickDataProto.historicalTickLast)
+                self.wrapper.tickByTickAllLast(
+                    reqId,
+                    tickType,
+                    historicalTickLast.time,
+                    historicalTickLast.price,
+                    historicalTickLast.size,
+                    historicalTickLast.tickAttribLast,
+                    historicalTickLast.exchange,
+                    historicalTickLast.specialConditions
+                )
+        elif tickType == 3:
+            # BidAsk
+            if tickByTickDataProto.HasField('historicalTickBidAsk'):
+                historicalTickBidAsk = decodeHistoricalTickBidAsk(tickByTickDataProto.historicalTickBidAsk)
+                self.wrapper.tickByTickBidAsk(
+                    reqId,
+                    historicalTickBidAsk.time,
+                    historicalTickBidAsk.priceBid,
+                    historicalTickBidAsk.priceAsk,
+                    historicalTickBidAsk.sizeBid,
+                    historicalTickBidAsk.sizeAsk,
+                    historicalTickBidAsk.tickAttribBidAsk
+                )
+        elif tickType == 4:
+            # MidPoint
+            if tickByTickDataProto.HasField('historicalTickMidPoint'):
+                historicalTick = decodeHistoricalTick(tickByTickDataProto.historicalTickMidPoint)
+                self.wrapper.tickByTickMidPoint(reqId, historicalTick.time, historicalTick.price)
+
     def processOrderBoundMsg(self, fields):
         permId = decode(int, fields)
         clientId = decode(int, fields)
         orderId = decode(int, fields)
+
+        self.wrapper.orderBound(permId, clientId, orderId)
+
+    def processOrderBoundMsgProtoBuf(self, protobuf):
+        orderBoundProto = OrderBoundProto()
+        orderBoundProto.ParseFromString(protobuf)
+
+        self.wrapper.orderBoundProtoBuf(orderBoundProto)
+
+        permId = orderBoundProto.permId if orderBoundProto.HasField('permId') else UNSET_LONG
+        clientId = orderBoundProto.clientId if orderBoundProto.HasField('clientId') else UNSET_INTEGER
+        orderId = orderBoundProto.orderId if orderBoundProto.HasField('orderId') else UNSET_INTEGER
 
         self.wrapper.orderBound(permId, clientId, orderId)
 
@@ -1279,6 +1722,27 @@ class Decoder(Object):
         side = decode(int, fields)
         price = decode(float, fields)
         size = decode(Decimal, fields)
+
+        self.wrapper.updateMktDepth(reqId, position, operation, side, price, size)
+
+    def processMarketDepthMsgProtoBuf(self, protobuf):
+        marketDepthProto = MarketDepthProto()
+        marketDepthProto.ParseFromString(protobuf)
+
+        self.wrapper.updateMarketDepthProtoBuf(marketDepthProto)
+
+        reqId = marketDepthProto.reqId if marketDepthProto.HasField('reqId') else NO_VALID_ID
+
+        # decode market depth fields
+        if not marketDepthProto.HasField('marketDepthData'):
+            return
+        marketDepthDataProto = marketDepthProto.marketDepthData
+
+        position = marketDepthDataProto.position if marketDepthDataProto.HasField('position') else UNSET_INTEGER
+        operation = marketDepthDataProto.operation if marketDepthDataProto.HasField('operation') else UNSET_INTEGER
+        side = marketDepthDataProto.side if marketDepthDataProto.HasField('side') else UNSET_INTEGER
+        price = marketDepthDataProto.price if marketDepthDataProto.HasField('price') else UNSET_DOUBLE
+        size = Decimal(marketDepthDataProto.size) if marketDepthDataProto.HasField('size') else UNSET_DECIMAL
 
         self.wrapper.updateMktDepth(reqId, position, operation, side, price, size)
 
@@ -1300,6 +1764,29 @@ class Decoder(Object):
         self.wrapper.updateMktDepthL2(
             reqId, position, marketMaker, operation, side, price, size, isSmartDepth
         )
+
+    def processMarketDepthL2MsgProtoBuf(self, protobuf):
+        marketDepthL2Proto = MarketDepthL2Proto()
+        marketDepthL2Proto.ParseFromString(protobuf)
+
+        self.wrapper.updateMarketDepthL2ProtoBuf(marketDepthL2Proto)
+
+        reqId = marketDepthL2Proto.reqId if marketDepthL2Proto.HasField('reqId') else NO_VALID_ID
+
+        # decode market depth fields
+        if not marketDepthL2Proto.HasField('marketDepthData'):
+            return
+        marketDepthDataProto = marketDepthL2Proto.marketDepthData
+
+        position = marketDepthDataProto.position if marketDepthDataProto.HasField('position') else 0
+        marketMaker = marketDepthDataProto.marketMaker if marketDepthDataProto.HasField('marketMaker') else ""
+        operation = marketDepthDataProto.operation if marketDepthDataProto.HasField('operation') else UNSET_INTEGER
+        side = marketDepthDataProto.side if marketDepthDataProto.HasField('side') else UNSET_INTEGER
+        price = marketDepthDataProto.price if marketDepthDataProto.HasField('price') else UNSET_DOUBLE
+        size = Decimal(marketDepthDataProto.size) if marketDepthDataProto.HasField('size') else UNSET_DECIMAL
+        isSmartDepth = marketDepthDataProto.isSmartDepth if marketDepthDataProto.HasField('isSmartDepth') else False
+
+        self.wrapper.updateMktDepthL2(reqId, position, marketMaker, operation, side, price, size, isSmartDepth)
 
     def processCompletedOrderMsg(self, fields):
         order = Order()
@@ -1381,7 +1868,38 @@ class Decoder(Object):
 
         self.wrapper.completedOrder(contract, order, orderState)
 
+    def processCompletedOrderMsgProtoBuf(self, protobuf):
+        completedOrderProto = CompletedOrderProto()
+        completedOrderProto.ParseFromString(protobuf)
+
+        self.wrapper.completedOrderProtoBuf(completedOrderProto)
+
+        # decode contract fields
+        if not completedOrderProto.HasField('contract'):
+            return
+        contract = decodeContract(completedOrderProto.contract)
+
+        # decode order fields
+        if not completedOrderProto.HasField('order'):
+            return
+        order = decodeOrder(UNSET_INTEGER, completedOrderProto.contract, completedOrderProto.order)
+        
+        # decode order state fields
+        if not completedOrderProto.HasField('orderState'):
+            return
+        orderState = decodeOrderState(completedOrderProto.orderState)
+
+        self.wrapper.completedOrder(contract, order, orderState);
+
     def processCompletedOrdersEndMsg(self, fields):
+        self.wrapper.completedOrdersEnd()
+
+    def processCompletedOrdersEndMsgProtoBuf(self, protobuf):
+        completedOrdersEndProto = CompletedOrdersEndProto()
+        completedOrdersEndProto.ParseFromString(protobuf)
+
+        self.wrapper.completedOrdersEndProtoBuf(completedOrdersEndProto)
+
         self.wrapper.completedOrdersEnd()
 
     def processReplaceFAEndMsg(self, fields):
@@ -1464,27 +1982,157 @@ class Decoder(Object):
 
         self.wrapper.error(reqId, errorTime, errorCode, errorMsg, advancedOrderRejectJson)
 
+    def processTickStringMsgProtoBuf(self, protobuf):
+        tickStringProto = TickStringProto()
+        tickStringProto.ParseFromString(protobuf)
+
+        self.wrapper.tickStringProtoBuf(tickStringProto)
+
+        reqId = tickStringProto.reqId if tickStringProto.HasField('reqId') else NO_VALID_ID
+        tickType = tickStringProto.tickType if tickStringProto.HasField('tickType') else UNSET_INTEGER
+        value = tickStringProto.value if tickStringProto.HasField('value') else ""
+
+        if tickType != TickTypeEnum.NOT_SET:
+            self.wrapper.tickString(reqId, tickType, value)
+
+    def processTickGenericMsgProtoBuf(self, protobuf):
+        tickGenericProto = TickGenericProto()
+        tickGenericProto.ParseFromString(protobuf)
+
+        self.wrapper.tickGenericProtoBuf(tickGenericProto)
+
+        reqId = tickGenericProto.reqId if tickGenericProto.HasField('reqId') else NO_VALID_ID
+        tickType = tickGenericProto.tickType if tickGenericProto.HasField('tickType') else UNSET_INTEGER
+        value = tickGenericProto.value if tickGenericProto.HasField('value') else UNSET_DOUBLE
+
+        if tickType != TickTypeEnum.NOT_SET:
+            self.wrapper.tickGeneric(reqId, tickType, value)
+
+    def processTickSnapshotEndMsgProtoBuf(self, protobuf):
+        tickSnapshotEndProto = TickSnapshotEndProto()
+        tickSnapshotEndProto.ParseFromString(protobuf)
+
+        self.wrapper.tickSnapshotEndProtoBuf(tickSnapshotEndProto)
+
+        reqId = tickSnapshotEndProto.reqId if tickSnapshotEndProto.HasField('reqId') else NO_VALID_ID
+
+        self.wrapper.tickSnapshotEnd(reqId)
+
+    def processAccountValueMsgProtoBuf(self, protobuf):
+        accountValueProto = AccountValueProto()
+        accountValueProto.ParseFromString(protobuf)
+
+        self.wrapper.updateAccountValueProtoBuf(accountValueProto)
+
+        key = accountValueProto.key if accountValueProto.HasField('key') else ""
+        value = accountValueProto.value if accountValueProto.HasField('value') else ""
+        currency = accountValueProto.currency if accountValueProto.HasField('currency') else ""
+        accountName = accountValueProto.accountName if accountValueProto.HasField('accountName') else ""
+
+        self.wrapper.updateAccountValue(key, value, currency, accountName)
+
+    def processAcctUpdateTimeMsgProtoBuf(self, protobuf):
+        accountUpdateTimeProto = AccountUpdateTimeProto()
+        accountUpdateTimeProto.ParseFromString(protobuf)
+
+        self.wrapper.updateAccountTimeProtoBuf(accountUpdateTimeProto)
+
+        timeStamp = accountUpdateTimeProto.timeStamp if accountUpdateTimeProto.HasField('timeStamp') else ""
+
+        self.wrapper.updateAccountTime(timeStamp)
+
+    def processAccountDataEndMsgProtoBuf(self, protobuf):
+        accountDataEndProto = AccountDataEndProto()
+        accountDataEndProto.ParseFromString(protobuf)
+
+        self.wrapper.accountDataEndProtoBuf(accountDataEndProto)
+
+        accountName = accountDataEndProto.accountName if accountDataEndProto.HasField('accountName') else ""
+
+        self.wrapper.accountDownloadEnd(accountName)
+
+    def processManagedAccountsMsgProtoBuf(self, protobuf):
+        managedAccountsProto = ManagedAccountsProto()
+        managedAccountsProto.ParseFromString(protobuf)
+
+        self.wrapper.managedAccountsProtoBuf(managedAccountsProto)
+
+        accountsList = managedAccountsProto.accountsList if managedAccountsProto.HasField('accountsList') else ""
+
+        self.wrapper.managedAccounts(accountsList)
+
+    def processPositionEndMsgProtoBuf(self, protobuf):
+        positionEndProto = PositionEndProto()
+        positionEndProto.ParseFromString(protobuf)
+
+        self.wrapper.positionEndProtoBuf(positionEndProto)
+
+        self.wrapper.positionEnd()
+
+    def processAccountSummaryMsgProtoBuf(self, protobuf):
+        accountSummaryProto = AccountSummaryProto()
+        accountSummaryProto.ParseFromString(protobuf)
+
+        self.wrapper.accountSummaryProtoBuf(accountSummaryProto)
+
+        reqId = accountSummaryProto.reqId if accountSummaryProto.HasField('reqId') else NO_VALID_ID
+        account = accountSummaryProto.account if accountSummaryProto.HasField('account') else ""
+        tag = accountSummaryProto.tag if accountSummaryProto.HasField('tag') else ""
+        value = accountSummaryProto.value if accountSummaryProto.HasField('value') else ""
+        currency = accountSummaryProto.currency if accountSummaryProto.HasField('currency') else ""
+
+        self.wrapper.accountSummary(reqId, account, tag, value, currency)
+
+    def processAccountSummaryEndMsgProtoBuf(self, protobuf):
+        accountSummaryEndProto = AccountSummaryEndProto()
+        accountSummaryEndProto.ParseFromString(protobuf)
+
+        self.wrapper.accountSummaryEndProtoBuf(accountSummaryEndProto)
+
+        reqId = accountSummaryEndProto.reqId if accountSummaryEndProto.HasField('reqId') else NO_VALID_ID
+
+        self.wrapper.accountSummaryEnd(reqId)
+
+    def processPositionMultiEndMsgProtoBuf(self, protobuf):
+        positionMultiEndProto = PositionMultiEndProto()
+        positionMultiEndProto.ParseFromString(protobuf)
+
+        self.wrapper.positionMultiEndProtoBuf(positionMultiEndProto)
+
+        reqId = positionMultiEndProto.reqId if positionMultiEndProto.HasField('reqId') else NO_VALID_ID
+
+        self.wrapper.positionMultiEnd(reqId)
+
+    def processAccountUpdateMultiMsgProtoBuf(self, protobuf):
+        accountUpdateMultiProto = AccountUpdateMultiProto()
+        accountUpdateMultiProto.ParseFromString(protobuf)
+
+        self.wrapper.accountUpdateMultiProtoBuf(accountUpdateMultiProto)
+
+        reqId = accountUpdateMultiProto.reqId if accountUpdateMultiProto.HasField('reqId') else NO_VALID_ID
+        account = accountUpdateMultiProto.account if accountUpdateMultiProto.HasField('account') else ""
+        modelCode = accountUpdateMultiProto.modelCode if accountUpdateMultiProto.HasField('modelCode') else ""
+        key = accountUpdateMultiProto.key if accountUpdateMultiProto.HasField('key') else ""
+        value = accountUpdateMultiProto.value if accountUpdateMultiProto.HasField('value') else ""
+        currency = accountUpdateMultiProto.currency if accountUpdateMultiProto.HasField('currency') else ""
+
+        self.wrapper.accountUpdateMulti(reqId, account, modelCode, key, value, currency)
+
+    def processAccountUpdateMultiEndMsgProtoBuf(self, protobuf):
+        accountUpdateMultiEndProto = AccountUpdateMultiEndProto()
+        accountUpdateMultiEndProto.ParseFromString(protobuf)
+
+        self.wrapper.accountUpdateMultiEndProtoBuf(accountUpdateMultiEndProto)
+
+        reqId = accountUpdateMultiEndProto.reqId if accountUpdateMultiEndProto.HasField('reqId') else NO_VALID_ID
+
+        self.wrapper.accountUpdateMultiEnd(reqId)
+
     ######################################################################
 
     def readLastTradeDate(self, fields, contract: ContractDetails, isBond: bool):
         lastTradeDateOrContractMonth = decode(str, fields)
-        if lastTradeDateOrContractMonth is not None:
-            if "-" in lastTradeDateOrContractMonth:
-                split = lastTradeDateOrContractMonth.split("-")
-            else:
-                split = lastTradeDateOrContractMonth.split()
-
-            if len(split) > 0:
-                if isBond:
-                    contract.maturity = split[0]
-                else:
-                    contract.contract.lastTradeDateOrContractMonth = split[0]
-
-            if len(split) > 1:
-                contract.lastTradeTime = split[1]
-
-            if isBond and len(split) > 2:
-                contract.timeZoneId = split[2]
+        setLastTradeDate(lastTradeDateOrContractMonth, contract, isBond)
 
     ######################################################################
 
@@ -1570,6 +2218,7 @@ class Decoder(Object):
 
         if handleInfo is None:
             logger.debug("msgId:%d - %s: no handleInfo", fields)
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), UNKNOWN_ID.code(), UNKNOWN_ID.msg())
             return
 
         try:
@@ -1594,6 +2243,7 @@ class Decoder(Object):
 
         if handleInfo is None:
             logger.debug("msgId:%d - %s: no handleInfo for protobuf", msgId, protoBuf)
+            self.wrapper.error(NO_VALID_ID, currentTimeMillis(), UNKNOWN_ID.code(), UNKNOWN_ID.msg())
             return
 
         try:
@@ -1708,4 +2358,43 @@ class Decoder(Object):
         IN.EXECUTION_DATA: HandleInfo(proc=processExecutionDataMsgProtoBuf),
         IN.OPEN_ORDER_END: HandleInfo(proc=processOpenOrdersEndMsgProtoBuf),
         IN.EXECUTION_DATA_END: HandleInfo(proc=processExecutionDataEndMsgProtoBuf),
+        IN.COMPLETED_ORDER: HandleInfo(proc=processCompletedOrderMsgProtoBuf),
+        IN.COMPLETED_ORDERS_END: HandleInfo(proc=processCompletedOrdersEndMsgProtoBuf),
+        IN.ORDER_BOUND: HandleInfo(proc=processOrderBoundMsgProtoBuf),
+        IN.CONTRACT_DATA: HandleInfo(proc=processContractDataMsgProtoBuf),
+        IN.BOND_CONTRACT_DATA: HandleInfo(proc=processBondContractDataMsgProtoBuf),
+        IN.CONTRACT_DATA_END: HandleInfo(proc=processContractDataEndMsgProtoBuf),
+        IN.TICK_PRICE: HandleInfo(proc=processTickPriceMsgProtoBuf),
+        IN.TICK_SIZE: HandleInfo(proc=processTickSizeMsgProtoBuf),
+        IN.TICK_OPTION_COMPUTATION: HandleInfo(proc=processTickOptionComputationMsgProtoBuf),
+        IN.TICK_GENERIC: HandleInfo(proc=processTickGenericMsgProtoBuf),
+        IN.TICK_STRING: HandleInfo(proc=processTickStringMsgProtoBuf),
+        IN.TICK_SNAPSHOT_END: HandleInfo(proc=processTickSnapshotEndMsgProtoBuf),
+        IN.MARKET_DEPTH: HandleInfo(proc=processMarketDepthMsgProtoBuf),
+        IN.MARKET_DEPTH_L2: HandleInfo(proc=processMarketDepthL2MsgProtoBuf),
+        IN.MARKET_DATA_TYPE: HandleInfo(proc=processMarketDataTypeMsgProtoBuf),
+        IN.TICK_REQ_PARAMS: HandleInfo(proc=processTickReqParamsMsgProtoBuf),
+        IN.ACCT_VALUE: HandleInfo(proc=processAccountValueMsgProtoBuf),
+        IN.PORTFOLIO_VALUE: HandleInfo(proc=processPortfolioValueMsgProtoBuf),
+        IN.ACCT_UPDATE_TIME: HandleInfo(proc=processAcctUpdateTimeMsgProtoBuf),
+        IN.ACCT_DOWNLOAD_END: HandleInfo(proc=processAccountDataEndMsgProtoBuf),
+        IN.MANAGED_ACCTS: HandleInfo(proc=processManagedAccountsMsgProtoBuf),
+        IN.POSITION_DATA: HandleInfo(proc=processPositionMsgProtoBuf),
+        IN.POSITION_END: HandleInfo(proc=processPositionEndMsgProtoBuf),
+        IN.ACCOUNT_SUMMARY: HandleInfo(proc=processAccountSummaryMsgProtoBuf),
+        IN.ACCOUNT_SUMMARY_END: HandleInfo(proc=processAccountSummaryEndMsgProtoBuf),
+        IN.POSITION_MULTI: HandleInfo(proc=processPositionMultiMsgProtoBuf),
+        IN.POSITION_MULTI_END: HandleInfo(proc=processPositionMultiEndMsgProtoBuf),
+        IN.ACCOUNT_UPDATE_MULTI: HandleInfo(proc=processAccountUpdateMultiMsgProtoBuf),
+        IN.ACCOUNT_UPDATE_MULTI_END: HandleInfo(proc=processAccountUpdateMultiEndMsgProtoBuf),
+        IN.HISTORICAL_DATA: HandleInfo(proc=processHistoricalDataMsgProtoBuf),
+        IN.HISTORICAL_DATA_UPDATE: HandleInfo(proc=processHistoricalDataUpdateMsgProtoBuf),
+        IN.HISTORICAL_DATA_END: HandleInfo(proc=processHistoricalDataEndMsgProtoBuf),
+        IN.REAL_TIME_BARS: HandleInfo(proc=processRealTimeBarMsgProtoBuf),
+        IN.HEAD_TIMESTAMP: HandleInfo(proc=processHeadTimestampMsgProtoBuf),
+        IN.HISTOGRAM_DATA: HandleInfo(proc=processHistogramDataMsgProtoBuf),
+        IN.HISTORICAL_TICKS: HandleInfo(proc=processHistoricalTicksMsgProtoBuf),
+        IN.HISTORICAL_TICKS_BID_ASK: HandleInfo(proc=processHistoricalTicksBidAskMsgProtoBuf),
+        IN.HISTORICAL_TICKS_LAST: HandleInfo(proc=processHistoricalTicksLastMsgProtoBuf),
+        IN.TICK_BY_TICK: HandleInfo(proc=processTickByTickMsgProtoBuf),
     }
