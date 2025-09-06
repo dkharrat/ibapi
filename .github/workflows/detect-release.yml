@@ -139,10 +139,3 @@ jobs:
           gh release create "$TAG" \
             -t "IB API ${{ needs.update-branch.outputs.channel }} $BUILD_VERSION" \
             -n "IB API ${{ needs.update-branch.outputs.channel }} $BUILD_VERSION release files"
-  
-      - name: Update release notes if needed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="ibapi-${{ needs.update-branch.outputs.channel }}@$BUILD_VERSION"
-          gh release edit "$TAG" --notes "Automated update for version $TAG"
