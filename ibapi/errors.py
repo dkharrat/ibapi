@@ -113,3 +113,5 @@ FA_PROFILE_NOT_SUPPORTED = CodeMsgPair(585, "FA Profile is not supported anymore
 FAIL_SEND_REQCURRTIMEINMILLIS = CodeMsgPair(587, "Request Current Time In Millis Sending Error - ")
 ERROR_ENCODING_PROTOBUF = CodeMsgPair(588, "Error encoding protobuf - ")
 FAIL_SEND_CANMKTDEPTH = CodeMsgPair(589, "Cancel Market Depth Sending Error - ")
+FAIL_SEND_CANCEL_CONTRACT_DATA = CodeMsgPair(590, "Cancel Contract Data Sending Error - ")
+FAIL_SEND_CANCEL_HISTORICAL_TICKS = CodeMsgPair(591, "Cancel Historical Ticks Sending Error - ")
