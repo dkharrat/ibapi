@@ -30,6 +30,7 @@ from ibapi.contract import FundAssetType
 from ibapi.ineligibility_reason import IneligibilityReason
 from ibapi.decoder_utils import decodeContract, decodeOrder, decodeExecution, decodeOrderState, decodeContractDetails, setLastTradeDate
 from ibapi.decoder_utils import decodeHistoricalDataBar, decodeHistogramDataEntry, decodeHistoricalTickLast, decodeHistoricalTickBidAsk, decodeHistoricalTick
+from ibapi.decoder_utils import decodeSoftDollarTier, decodeFamilyCode, decodeSmartComponents, decodePriceIncrement, decodeDepthMarketDataDescription
 
 from ibapi.protobuf.OrderStatus_pb2 import OrderStatus as OrderStatusProto
 from ibapi.protobuf.OpenOrder_pb2 import OpenOrder as OpenOrderProto
@@ -80,6 +81,41 @@ from ibapi.protobuf.HistoricalTicks_pb2 import HistoricalTicks as HistoricalTick
 from ibapi.protobuf.HistoricalTicksBidAsk_pb2 import HistoricalTicksBidAsk as HistoricalTicksBidAskProto
 from ibapi.protobuf.HistoricalTicksLast_pb2 import HistoricalTicksLast as HistoricalTicksLastProto
 from ibapi.protobuf.TickByTickData_pb2 import TickByTickData as TickByTickDataProto
+from ibapi.protobuf.NewsBulletin_pb2 import NewsBulletin as NewsBulletinProto
+from ibapi.protobuf.NewsArticle_pb2 import NewsArticle as NewsArticleProto
+from ibapi.protobuf.NewsProviders_pb2 import NewsProviders as NewsProvidersProto
+from ibapi.protobuf.HistoricalNews_pb2 import HistoricalNews as HistoricalNewsProto
+from ibapi.protobuf.HistoricalNewsEnd_pb2 import HistoricalNewsEnd as HistoricalNewsEndProto
+from ibapi.protobuf.WshMetaData_pb2 import WshMetaData as WshMetaDataProto
+from ibapi.protobuf.WshEventData_pb2 import WshEventData as WshEventDataProto
+from ibapi.protobuf.TickNews_pb2 import TickNews as TickNewsProto
+from ibapi.protobuf.ScannerParameters_pb2 import ScannerParameters as ScannerParametersProto
+from ibapi.protobuf.ScannerData_pb2 import ScannerData as ScannerDataProto
+from ibapi.protobuf.FundamentalsData_pb2 import FundamentalsData as FundamentalsDataProto
+from ibapi.protobuf.PnL_pb2 import PnL as PnLProto
+from ibapi.protobuf.PnLSingle_pb2 import PnLSingle as PnLSingleProto
+from ibapi.protobuf.ReceiveFA_pb2 import ReceiveFA as ReceiveFAProto
+from ibapi.protobuf.ReplaceFAEnd_pb2 import ReplaceFAEnd as ReplaceFAEndProto
+from ibapi.protobuf.CommissionAndFeesReport_pb2 import CommissionAndFeesReport as CommissionAndFeesReportProto
+from ibapi.protobuf.HistoricalSchedule_pb2 import HistoricalSchedule as HistoricalScheduleProto
+from ibapi.protobuf.RerouteMarketDataRequest_pb2 import RerouteMarketDataRequest as RerouteMarketDataRequestProto
+from ibapi.protobuf.RerouteMarketDepthRequest_pb2 import RerouteMarketDepthRequest as RerouteMarketDepthRequestProto
+from ibapi.protobuf.SecDefOptParameter_pb2 import SecDefOptParameter as SecDefOptParameterProto
+from ibapi.protobuf.SecDefOptParameterEnd_pb2 import SecDefOptParameterEnd as SecDefOptParameterEndProto
+from ibapi.protobuf.SoftDollarTiers_pb2 import SoftDollarTiers as SoftDollarTiersProto
+from ibapi.protobuf.FamilyCodes_pb2 import FamilyCodes as FamilyCodesProto
+from ibapi.protobuf.SymbolSamples_pb2 import SymbolSamples as SymbolSamplesProto
+from ibapi.protobuf.SmartComponents_pb2 import SmartComponents as SmartComponentsProto
+from ibapi.protobuf.MarketRule_pb2 import MarketRule as MarketRuleProto
+from ibapi.protobuf.UserInfo_pb2 import UserInfo as UserInfoProto
+from ibapi.protobuf.NextValidId_pb2 import NextValidId as NextValidIdProto
+from ibapi.protobuf.CurrentTime_pb2 import CurrentTime as CurrentTimeProto
+from ibapi.protobuf.CurrentTimeInMillis_pb2 import CurrentTimeInMillis as CurrentTimeInMillisProto
+from ibapi.protobuf.VerifyMessageApi_pb2 import VerifyMessageApi as VerifyMessageApiProto
+from ibapi.protobuf.VerifyCompleted_pb2 import VerifyCompleted as VerifyCompletedProto
+from ibapi.protobuf.DisplayGroupList_pb2 import DisplayGroupList as DisplayGroupListProto
+from ibapi.protobuf.DisplayGroupUpdated_pb2 import DisplayGroupUpdated as DisplayGroupUpdatedProto
+from ibapi.protobuf.MarketDepthExchanges_pb2 import MarketDepthExchanges as MarketDepthExchangesProto
 
 logger = logging.getLogger(__name__)
 
@@ -242,8 +278,8 @@ class Decoder(Object):
 
         orderId = orderStatusProto.orderId if orderStatusProto.HasField('orderId') else UNSET_INTEGER
         status = orderStatusProto.status if orderStatusProto.HasField('status') else ""
-        filled = orderStatusProto.filled if orderStatusProto.HasField('filled') else UNSET_DECIMAL
-        remaining = orderStatusProto.remaining if orderStatusProto.HasField('remaining') else UNSET_DECIMAL
+        filled = Decimal(orderStatusProto.filled) if orderStatusProto.HasField('filled') else UNSET_DECIMAL
+        remaining = Decimal(orderStatusProto.remaining) if orderStatusProto.HasField('remaining') else UNSET_DECIMAL
         avgFillPrice = orderStatusProto.avgFillPrice if orderStatusProto.HasField('avgFillPrice') else UNSET_DOUBLE
         permId = orderStatusProto.permId if orderStatusProto.HasField('permId') else UNSET_LONG
         parentId = orderStatusProto.parentId if orderStatusProto.HasField('parentId') else UNSET_INTEGER
@@ -729,6 +765,34 @@ class Decoder(Object):
 
         self.wrapper.scannerDataEnd(reqId)
 
+    def processScannerDataMsgProtoBuf(self, protobuf):
+        scannerDataProto = ScannerDataProto()
+        scannerDataProto.ParseFromString(protobuf)
+
+        self.wrapper.scannerDataProtoBuf(scannerDataProto)
+
+        reqId = scannerDataProto.reqId if scannerDataProto.HasField('reqId') else NO_VALID_ID
+
+        if scannerDataProto.scannerDataElement:
+            for element in scannerDataProto.scannerDataElement:
+                rank = element.rank if element.HasField('rank') else 0
+
+                # Set contract details
+                contractDetails = ContractDetails()
+                if element.HasField('contract'):
+                    contract = decodeContract(element.contract)
+                    contractDetails.contract = contract
+                    contractDetails.marketName = element.marketName if element.HasField('marketName') else ""
+
+                distance = element.distance if element.HasField('distance') else ""
+                benchmark = element.benchmark if element.HasField('benchmark') else ""
+                projection = element.projection if element.HasField('projection') else ""
+                comboKey = element.comboKey if element.HasField('comboKey') else ""
+
+                self.wrapper.scannerData(reqId, rank, contractDetails, distance, benchmark, projection, comboKey)
+
+        self.wrapper.scannerDataEnd(reqId)
+
     def processExecutionDataMsg(self, fields):
         version = self.serverVersion
 
@@ -1108,6 +1172,22 @@ class Decoder(Object):
 
         self.wrapper.commissionAndFeesReport(commissionAndFeesReport)
 
+    def processCommissionAndFeesReportMsgProtoBuf(self, protobuf):
+        commissionAndFeesReportProto = CommissionAndFeesReportProto()
+        commissionAndFeesReportProto.ParseFromString(protobuf)
+    
+        self.wrapper.commissionAndFeesReportProtoBuf(commissionAndFeesReportProto)
+    
+        commissionAndFeesReport = CommissionAndFeesReport()
+        commissionAndFeesReport.execId = commissionAndFeesReportProto.execId if commissionAndFeesReportProto.HasField('execId') else ""
+        commissionAndFeesReport.commissionAndFees = commissionAndFeesReportProto.commissionAndFees if commissionAndFeesReportProto.HasField('commissionAndFees') else 0.0
+        commissionAndFeesReport.currency = commissionAndFeesReportProto.currency if commissionAndFeesReportProto.HasField('currency') else ""
+        commissionAndFeesReport.realizedPNL = commissionAndFeesReportProto.realizedPNL if commissionAndFeesReportProto.HasField('realizedPNL') else 0.0
+        commissionAndFeesReport.yield_ = commissionAndFeesReportProto.bondYield if commissionAndFeesReportProto.HasField('bondYield') else 0.0
+        commissionAndFeesReport.yieldRedemptionDate = int(commissionAndFeesReportProto.yieldRedemptionDate) if commissionAndFeesReportProto.HasField('yieldRedemptionDate') else 0
+    
+        self.wrapper.commissionAndFeesReport(commissionAndFeesReport)
+
     def processPositionDataMsg(self, fields):
         version = decode(int, fields)
 
@@ -1228,8 +1308,42 @@ class Decoder(Object):
             strikes,
         )
 
+    def processSecurityDefinitionOptionParameterMsgProtoBuf(self, protobuf):
+        secDefOptParameterProto = SecDefOptParameterProto()
+        secDefOptParameterProto.ParseFromString(protobuf)
+    
+        self.wrapper.secDefOptParameterProtoBuf(secDefOptParameterProto)
+    
+        reqId = secDefOptParameterProto.reqId if secDefOptParameterProto.HasField('reqId') else NO_VALID_ID
+        exchange = secDefOptParameterProto.exchange if secDefOptParameterProto.HasField('exchange') else ""
+        underlyingConId = secDefOptParameterProto.underlyingConId if secDefOptParameterProto.HasField('underlyingConId') else 0
+        tradingClass = secDefOptParameterProto.tradingClass if secDefOptParameterProto.HasField('tradingClass') else ""
+        multiplier = secDefOptParameterProto.multiplier if secDefOptParameterProto.HasField('multiplier') else ""
+    
+        expirations = set()
+        if secDefOptParameterProto.expirations:
+            for expiration in secDefOptParameterProto.expirations:
+                expirations.add(expiration)
+    
+        strikes = set()
+        if secDefOptParameterProto.strikes:
+            for strike in secDefOptParameterProto.strikes:
+                strikes.add(strike)
+    
+        self.wrapper.securityDefinitionOptionParameter(reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes)
+
     def processSecurityDefinitionOptionParameterEndMsg(self, fields):
         reqId = decode(int, fields)
+        self.wrapper.securityDefinitionOptionParameterEnd(reqId)
+
+    def processSecurityDefinitionOptionParameterEndMsgProtoBuf(self, protobuf):
+        secDefOptParameterEndProto = SecDefOptParameterEndProto()
+        secDefOptParameterEndProto.ParseFromString(protobuf)
+    
+        self.wrapper.secDefOptParameterEndProtoBuf(secDefOptParameterEndProto)
+    
+        reqId = secDefOptParameterEndProto.reqId if secDefOptParameterEndProto.HasField('reqId') else NO_VALID_ID
+    
         self.wrapper.securityDefinitionOptionParameterEnd(reqId)
 
     def processSoftDollarTiersMsg(self, fields):
@@ -1246,6 +1360,22 @@ class Decoder(Object):
 
         self.wrapper.softDollarTiers(reqId, tiers)
 
+    def processSoftDollarTiersMsgProtoBuf(self, protobuf):
+        softDollarTiersProto = SoftDollarTiersProto()
+        softDollarTiersProto.ParseFromString(protobuf)
+    
+        self.wrapper.softDollarTiersProtoBuf(softDollarTiersProto)
+    
+        reqId = softDollarTiersProto.reqId if softDollarTiersProto.HasField('reqId') else NO_VALID_ID
+    
+        tiers = []
+        if softDollarTiersProto.softDollarTiers:
+            for softDollarTierProto in softDollarTiersProto.softDollarTiers:
+                tier = decodeSoftDollarTier(softDollarTierProto)
+                if tier is not None: tiers.append(tier);
+    
+        self.wrapper.softDollarTiers(reqId, tiers)
+
     def processFamilyCodesMsg(self, fields):
         nFamilyCodes = decode(int, fields)
         familyCodes = []
@@ -1255,6 +1385,20 @@ class Decoder(Object):
             famCode.familyCodeStr = decode(str, fields)
             familyCodes.append(famCode)
 
+        self.wrapper.familyCodes(familyCodes)
+
+    def processFamilyCodesMsgProtoBuf(self, protobuf):
+        familyCodesProto = FamilyCodesProto()
+        familyCodesProto.ParseFromString(protobuf)
+    
+        self.wrapper.familyCodesProtoBuf(familyCodesProto)
+    
+        familyCodes = []
+        if familyCodesProto.familyCodes:
+            for familCodeProto in familyCodesProto.familyCodes:
+                familyCode = decodeFamilyCode(familCodeProto)
+                familyCodes.append(familyCode)
+    
         self.wrapper.familyCodes(familyCodes)
 
     def processSymbolSamplesMsg(self, fields):
@@ -1282,6 +1426,35 @@ class Decoder(Object):
 
         self.wrapper.symbolSamples(reqId, contractDescriptions)
 
+
+    def processSymbolSamplesMsgProtoBuf(self, protobuf):
+        symbolSamplesProto = SymbolSamplesProto()
+        symbolSamplesProto.ParseFromString(protobuf)
+    
+        self.wrapper.symbolSamplesProtoBuf(symbolSamplesProto)
+    
+        reqId = symbolSamplesProto.reqId if symbolSamplesProto.HasField('reqId') else NO_VALID_ID
+    
+        contractDescriptions = []
+        if symbolSamplesProto.contractDescriptions:
+            for contractDescriptionProto in symbolSamplesProto.contractDescriptions:
+                contract = Contract()
+                if contractDescriptionProto.HasField('contract'):
+                    contract = decodeContract(contractDescriptionProto.contract)
+            
+                derivativeSecTypes = []
+                if contractDescriptionProto.derivativeSecTypes:
+                    for secType in contractDescriptionProto.derivativeSecTypes:
+                        derivativeSecTypes.append(secType)
+            
+                contracrDescription = ContractDescription()
+                contracrDescription.contract = contract
+                contracrDescription.derivativeSecTypes = derivativeSecTypes
+
+                contractDescriptions.append(contracrDescription)
+    
+        self.wrapper.symbolSamples(reqId, contractDescriptions)
+
     def processSmartComponents(self, fields):
         reqId = decode(int, fields)
         n = decode(int, fields)
@@ -1295,6 +1468,20 @@ class Decoder(Object):
             smartComponentMap.append(smartComponent)
 
         self.wrapper.smartComponents(reqId, smartComponentMap)
+
+    def processSmartComponentsMsgProtoBuf(self, protobuf):
+        smartComponentsProto = SmartComponentsProto()
+        smartComponentsProto.ParseFromString(protobuf)
+    
+        self.wrapper.smartComponentsProtoBuf(smartComponentsProto)
+    
+        reqId = smartComponentsProto.reqId if smartComponentsProto.HasField('reqId') else NO_VALID_ID
+    
+        smartComponentsMap = []
+
+        smartComponentsMap = decodeSmartComponents(smartComponentsProto)
+    
+        self.wrapper.smartComponents(reqId, smartComponentsMap)
 
     def processTickReqParams(self, fields):
         tickerId = decode(int, fields)
@@ -1335,6 +1522,19 @@ class Decoder(Object):
 
         self.wrapper.mktDepthExchanges(depthMktDataDescriptions)
 
+    def processMktDepthExchangesMsgProtoBuf(self, protobuf):
+        marketDepthExchangesProto = MarketDepthExchangesProto()
+        marketDepthExchangesProto.ParseFromString(protobuf)
+    
+        self.wrapper.marketDepthExchangesProtoBuf(marketDepthExchangesProto)
+    
+        depthMktDataDescriptions = []
+        if marketDepthExchangesProto.depthMarketDataDescriptions:
+            for depthMarketDataDescriptionProto in marketDepthExchangesProto.depthMarketDataDescriptions:
+                depthMktDataDescriptions.append(decodeDepthMarketDataDescription(depthMarketDataDescriptionProto))
+    
+        self.wrapper.mktDepthExchanges(depthMktDataDescriptions)
+
     def processHeadTimestamp(self, fields):
         reqId = decode(int, fields)
         headTimestamp = decode(str, fields)
@@ -1362,6 +1562,21 @@ class Decoder(Object):
             tickerId, timeStamp, providerCode, articleId, headline, extraData
         )
 
+    def processTickNewsMsgProtoBuf(self, protobuf):
+        tickNewsProto = TickNewsProto()
+        tickNewsProto.ParseFromString(protobuf)
+
+        self.wrapper.tickNewsProtoBuf(tickNewsProto)
+
+        reqId = tickNewsProto.reqId if tickNewsProto.HasField('reqId') else NO_VALID_ID
+        timestamp = tickNewsProto.timestamp if tickNewsProto.HasField('timestamp') else 0
+        providerCode = tickNewsProto.providerCode if tickNewsProto.HasField('providerCode') else ""
+        articleId = tickNewsProto.articleId if tickNewsProto.HasField('articleId') else ""
+        headline = tickNewsProto.headline if tickNewsProto.HasField('headline') else ""
+        extraData = tickNewsProto.extraData if tickNewsProto.HasField('extraData') else ""
+
+        self.wrapper.tickNews(reqId, timestamp, providerCode, articleId, headline, extraData)
+
     def processNewsProviders(self, fields):
         newsProviders = []
         nNewsProviders = decode(int, fields)
@@ -1374,10 +1589,38 @@ class Decoder(Object):
 
         self.wrapper.newsProviders(newsProviders)
 
+    def processNewsProvidersMsgProtoBuf(self, protobuf):
+        newsProvidersProto = NewsProvidersProto()
+        newsProvidersProto.ParseFromString(protobuf)
+
+        self.wrapper.newsProvidersProtoBuf(newsProvidersProto)
+
+        newsProviders = []
+        if newsProvidersProto.newsProviders:
+            for newsProviderProto in newsProvidersProto.newsProviders:
+                newsProvider = NewsProvider()
+                newsProvider.code = newsProviderProto.providerCode if newsProviderProto.HasField('providerCode') else ""
+                newsProvider.name = newsProviderProto.providerName if newsProviderProto.HasField('providerName') else ""
+                newsProviders.append(newsProvider)
+
+        self.wrapper.newsProviders(newsProviders)
+
     def processNewsArticle(self, fields):
         reqId = decode(int, fields)
         articleType = decode(int, fields)
         articleText = decode(str, fields)
+        self.wrapper.newsArticle(reqId, articleType, articleText)
+
+    def processNewsArticleMsgProtoBuf(self, protobuf):
+        newsArticleProto = NewsArticleProto()
+        newsArticleProto.ParseFromString(protobuf)
+
+        self.wrapper.newsArticleProtoBuf(newsArticleProto)
+
+        reqId = newsArticleProto.reqId if newsArticleProto.HasField('reqId') else NO_VALID_ID
+        articleType = newsArticleProto.articleType if newsArticleProto.HasField('articleType') else 0
+        articleText = newsArticleProto.articleText if newsArticleProto.HasField('articleText') else ""
+
         self.wrapper.newsArticle(reqId, articleType, articleText)
 
     def processHistoricalNews(self, fields):
@@ -1388,9 +1631,34 @@ class Decoder(Object):
         headline = decode(str, fields)
         self.wrapper.historicalNews(requestId, time, providerCode, articleId, headline)
 
+    def processHistoricalNewsMsgProtoBuf(self, protobuf):
+        historicalNewsProto = HistoricalNewsProto()
+        historicalNewsProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalNewsProtoBuf(historicalNewsProto)
+
+        reqId = historicalNewsProto.reqId if historicalNewsProto.HasField('reqId') else NO_VALID_ID
+        time = historicalNewsProto.time if historicalNewsProto.HasField('time') else ""
+        providerCode = historicalNewsProto.providerCode if historicalNewsProto.HasField('providerCode') else ""
+        articleId = historicalNewsProto.articleId if historicalNewsProto.HasField('articleId') else ""
+        headline = historicalNewsProto.headline if historicalNewsProto.HasField('headline') else ""
+
+        self.wrapper.historicalNews(reqId, time, providerCode, articleId, headline)
+
     def processHistoricalNewsEnd(self, fields):
         reqId = decode(int, fields)
         hasMore = decode(bool, fields)
+        self.wrapper.historicalNewsEnd(reqId, hasMore)
+
+    def processHistoricalNewsEndMsgProtoBuf(self, protobuf):
+        historicalNewsEndProto = HistoricalNewsEndProto()
+        historicalNewsEndProto.ParseFromString(protobuf)
+
+        self.wrapper.historicalNewsEndProtoBuf(historicalNewsEndProto)
+
+        reqId = historicalNewsEndProto.reqId if historicalNewsEndProto.HasField('reqId') else NO_VALID_ID
+        hasMore = historicalNewsEndProto.hasMore if historicalNewsEndProto.HasField('hasMore') else False
+
         self.wrapper.historicalNewsEnd(reqId, hasMore)
 
     def processHistogramData(self, fields):
@@ -1429,11 +1697,35 @@ class Decoder(Object):
 
         self.wrapper.rerouteMktDataReq(reqId, conId, exchange)
 
+    def processRerouteMktDataReqMsgProtoBuf(self, protobuf):
+        rerouteMarketDataRequestProto = RerouteMarketDataRequestProto()
+        rerouteMarketDataRequestProto.ParseFromString(protobuf)
+    
+        self.wrapper.rerouteMarketDataRequestProtoBuf(rerouteMarketDataRequestProto)
+    
+        reqId = rerouteMarketDataRequestProto.reqId if rerouteMarketDataRequestProto.HasField('reqId') else NO_VALID_ID
+        conId = rerouteMarketDataRequestProto.conId if rerouteMarketDataRequestProto.HasField('conId') else 0
+        exchange = rerouteMarketDataRequestProto.exchange if rerouteMarketDataRequestProto.HasField('exchange') else ""
+    
+        self.wrapper.rerouteMktDataReq(reqId, conId, exchange)
+
     def processRerouteMktDepthReq(self, fields):
         reqId = decode(int, fields)
         conId = decode(int, fields)
         exchange = decode(str, fields)
 
+        self.wrapper.rerouteMktDepthReq(reqId, conId, exchange)
+
+    def processRerouteMktDepthReqMsgProtoBuf(self, protobuf):
+        rerouteMarketDepthRequestProto = RerouteMarketDepthRequestProto()
+        rerouteMarketDepthRequestProto.ParseFromString(protobuf)
+    
+        self.wrapper.rerouteMarketDepthRequestProtoBuf(rerouteMarketDepthRequestProto)
+    
+        reqId = rerouteMarketDepthRequestProto.reqId if rerouteMarketDepthRequestProto.HasField('reqId') else NO_VALID_ID
+        conId = rerouteMarketDepthRequestProto.conId if rerouteMarketDepthRequestProto.HasField('conId') else 0
+        exchange = rerouteMarketDepthRequestProto.exchange if rerouteMarketDepthRequestProto.HasField('exchange') else ""
+    
         self.wrapper.rerouteMktDepthReq(reqId, conId, exchange)
 
     def processMarketRuleMsg(self, fields):
@@ -1451,6 +1743,22 @@ class Decoder(Object):
 
         self.wrapper.marketRule(marketRuleId, priceIncrements)
 
+    def processMarketRuleMsgProtoBuf(self, protobuf):
+        marketRuleProto = MarketRuleProto()
+        marketRuleProto.ParseFromString(protobuf)
+    
+        self.wrapper.marketRuleProtoBuf(marketRuleProto)
+    
+        marketRuleId = marketRuleProto.marketRuleId if marketRuleProto.HasField('marketRuleId') else 0
+    
+        priceIncrements = []
+        if marketRuleProto.priceIncrements:
+            for priceIncrementProto in marketRuleProto.priceIncrements:
+                priceIncrement = decodePriceIncrement(priceIncrementProto)
+                priceIncrements.append(priceIncrement)
+    
+        self.wrapper.marketRule(marketRuleId, priceIncrements)
+
     def processPnLMsg(self, fields):
         reqId = decode(int, fields)
         dailyPnL = decode(float, fields)
@@ -1462,6 +1770,19 @@ class Decoder(Object):
 
         if self.serverVersion >= MIN_SERVER_VER_REALIZED_PNL:
             realizedPnL = decode(float, fields)
+
+        self.wrapper.pnl(reqId, dailyPnL, unrealizedPnL, realizedPnL)
+
+    def processPnLMsgProtoBuf(self, protobuf):
+        pnlProto = PnLProto()
+        pnlProto.ParseFromString(protobuf)
+
+        self.wrapper.pnlProtoBuf(pnlProto)
+
+        reqId = pnlProto.reqId if pnlProto.HasField('reqId') else NO_VALID_ID
+        dailyPnL = pnlProto.dailyPnL if pnlProto.HasField('dailyPnL') else UNSET_DOUBLE
+        unrealizedPnL = pnlProto.unrealizedPnL if pnlProto.HasField('unrealizedPnL') else UNSET_DOUBLE
+        realizedPnL = pnlProto.realizedPnL if pnlProto.HasField('realizedPnL') else UNSET_DOUBLE
 
         self.wrapper.pnl(reqId, dailyPnL, unrealizedPnL, realizedPnL)
 
@@ -1479,6 +1800,21 @@ class Decoder(Object):
             realizedPnL = decode(float, fields)
 
         value = decode(float, fields)
+
+        self.wrapper.pnlSingle(reqId, pos, dailyPnL, unrealizedPnL, realizedPnL, value)
+
+    def processPnLSingleMsgProtoBuf(self, protobuf):
+        pnlSingleProto = PnLSingleProto()
+        pnlSingleProto.ParseFromString(protobuf)
+
+        self.wrapper.pnlSingleProtoBuf(pnlSingleProto)
+
+        reqId = pnlSingleProto.reqId if pnlSingleProto.HasField('reqId') else NO_VALID_ID
+        pos = Decimal(pnlSingleProto.position) if pnlSingleProto.HasField('position') else UNSET_DECIMAL
+        dailyPnL = pnlSingleProto.dailyPnL if pnlSingleProto.HasField('dailyPnL') else UNSET_DOUBLE
+        unrealizedPnL = pnlSingleProto.unrealizedPnL if pnlSingleProto.HasField('unrealizedPnL') else UNSET_DOUBLE
+        realizedPnL = pnlSingleProto.realizedPnL if pnlSingleProto.HasField('realizedPnL') else UNSET_DOUBLE
+        value = pnlSingleProto.value if pnlSingleProto.HasField('value') else UNSET_DOUBLE
 
         self.wrapper.pnlSingle(reqId, pos, dailyPnL, unrealizedPnL, realizedPnL, value)
 
@@ -1908,15 +2244,48 @@ class Decoder(Object):
 
         self.wrapper.replaceFAEnd(reqId, text)
 
+    def processReplaceFAEndMsgProtoBuf(self, protobuf):
+        replaceFAEndProto = ReplaceFAEndProto()
+        replaceFAEndProto.ParseFromString(protobuf)
+    
+        self.wrapper.replaceFAEndProtoBuf(replaceFAEndProto)
+    
+        reqId = replaceFAEndProto.reqId if replaceFAEndProto.HasField('reqId') else NO_VALID_ID
+        text = replaceFAEndProto.text if replaceFAEndProto.HasField('text') else ""
+    
+        self.wrapper.replaceFAEnd(reqId, text)
+
     def processWshMetaDataMsg(self, fields):
         reqId = decode(int, fields)
         dataJson = decode(str, fields)
 
         self.wrapper.wshMetaData(reqId, dataJson)
 
+    def processWshMetaDataMsgProtoBuf(self, protobuf):
+        wshMetaDataProto = WshMetaDataProto()
+        wshMetaDataProto.ParseFromString(protobuf)
+
+        self.wrapper.wshMetaDataProtoBuf(wshMetaDataProto)
+
+        reqId = wshMetaDataProto.reqId if wshMetaDataProto.HasField('reqId') else NO_VALID_ID
+        dataJson = wshMetaDataProto.dataJson if wshMetaDataProto.HasField('dataJson') else ""
+
+        self.wrapper.wshMetaData(reqId, dataJson)
+
     def processWshEventDataMsg(self, fields):
         reqId = decode(int, fields)
         dataJson = decode(str, fields)
+
+        self.wrapper.wshEventData(reqId, dataJson)
+
+    def processWshEventDataMsgProtoBuf(self, protobuf):
+        wshEventDataProto = WshEventDataProto()
+        wshEventDataProto.ParseFromString(protobuf)
+
+        self.wrapper.wshEventDataProtoBuf(wshEventDataProto)
+
+        reqId = wshEventDataProto.reqId if wshEventDataProto.HasField('reqId') else NO_VALID_ID
+        dataJson = wshEventDataProto.dataJson if wshEventDataProto.HasField('dataJson') else ""
 
         self.wrapper.wshEventData(reqId, dataJson)
 
@@ -1940,15 +2309,58 @@ class Decoder(Object):
             reqId, startDateTime, endDateTime, timeZone, sessions
         )
 
+    def processHistoricalScheduleMsgProtoBuf(self, protobuf):
+        historicalScheduleProto = HistoricalScheduleProto()
+        historicalScheduleProto.ParseFromString(protobuf)
+    
+        self.wrapper.historicalScheduleProtoBuf(historicalScheduleProto)
+    
+        reqId = historicalScheduleProto.reqId if historicalScheduleProto.HasField('reqId') else NO_VALID_ID
+        startDateTime = historicalScheduleProto.startDateTime if historicalScheduleProto.HasField('startDateTime') else ""
+        endDateTime = historicalScheduleProto.endDateTime if historicalScheduleProto.HasField('endDateTime') else ""
+        timeZone = historicalScheduleProto.timeZone if historicalScheduleProto.HasField('timeZone') else ""
+    
+        sessions = []
+        if historicalScheduleProto.historicalSessions:
+            for historicalSessionProto in historicalScheduleProto.historicalSessions:
+                historicalSession = HistoricalSession()
+                historicalSession.startDateTime = historicalSessionProto.startDateTime if historicalSessionProto.HasField('startDateTime') else ""
+                historicalSession.endDateTime = historicalSessionProto.endDateTime if historicalSessionProto.HasField('endDateTime') else ""
+                historicalSession.refDate = historicalSessionProto.refDate if historicalSessionProto.HasField('refDate') else ""
+                sessions.append(historicalSession)
+    
+        self.wrapper.historicalSchedule(reqId, startDateTime, endDateTime, timeZone, sessions)
+
     def processUserInfo(self, fields):
         reqId = decode(int, fields)
         whiteBrandingId = decode(str, fields)
 
         self.wrapper.userInfo(reqId, whiteBrandingId)
 
+    def processUserInfoMsgProtoBuf(self, protobuf):
+        userInfoProto = UserInfoProto()
+        userInfoProto.ParseFromString(protobuf)
+    
+        self.wrapper.userInfoProtoBuf(userInfoProto)
+    
+        reqId = userInfoProto.reqId if userInfoProto.HasField('reqId') else NO_VALID_ID
+        whiteBrandingId = userInfoProto.whiteBrandingId if userInfoProto.HasField('whiteBrandingId') else ""
+    
+        self.wrapper.userInfo(reqId, whiteBrandingId)
+
     def processCurrentTimeInMillis(self, fields):
         timeInMillis = decode(int, fields)
 
+        self.wrapper.currentTimeInMillis(timeInMillis)
+
+    def processCurrentTimeInMillisMsgProtoBuf(self, protobuf):
+        currentTimeInMillisProto = CurrentTimeInMillisProto()
+        currentTimeInMillisProto.ParseFromString(protobuf)
+    
+        self.wrapper.currentTimeInMillisProtoBuf(currentTimeInMillisProto)
+    
+        timeInMillis = currentTimeInMillisProto.currentTimeInMillis if currentTimeInMillisProto.HasField('currentTimeInMillis') else 0
+    
         self.wrapper.currentTimeInMillis(timeInMillis)
 
     def processErrorMsg(self, fields):
@@ -2127,6 +2539,114 @@ class Decoder(Object):
         reqId = accountUpdateMultiEndProto.reqId if accountUpdateMultiEndProto.HasField('reqId') else NO_VALID_ID
 
         self.wrapper.accountUpdateMultiEnd(reqId)
+
+    def processNewsBulletinMsgProtoBuf(self, protobuf):
+        newsBulletinProto = NewsBulletinProto()
+        newsBulletinProto.ParseFromString(protobuf)
+
+        self.wrapper.updateNewsBulletinProtoBuf(newsBulletinProto)
+
+        msgId = newsBulletinProto.newsMsgId if newsBulletinProto.HasField('newsMsgId') else 0
+        msgType = newsBulletinProto.newsMsgType if newsBulletinProto.HasField('newsMsgType') else 0
+        message = newsBulletinProto.newsMessage if newsBulletinProto.HasField('newsMessage') else ""
+        originExch = newsBulletinProto.originatingExch if newsBulletinProto.HasField('originatingExch') else ""
+
+        self.wrapper.updateNewsBulletin(msgId, msgType, message, originExch)
+
+    def processScannerParametersMsgProtoBuf(self, protobuf):
+        scannerParametersProto = ScannerParametersProto()
+        scannerParametersProto.ParseFromString(protobuf)
+
+        self.wrapper.scannerParametersProtoBuf(scannerParametersProto)
+
+        xml = scannerParametersProto.xml if scannerParametersProto.HasField('xml') else ""
+
+        self.wrapper.scannerParameters(xml)
+
+    def processFundamentalsDataMsgProtoBuf(self, protobuf):
+        fundamentalsDataProto = FundamentalsDataProto()
+        fundamentalsDataProto.ParseFromString(protobuf)
+
+        self.wrapper.fundamentalsDataProtoBuf(fundamentalsDataProto)
+
+        reqId = fundamentalsDataProto.reqId if fundamentalsDataProto.HasField('reqId') else NO_VALID_ID
+        data = fundamentalsDataProto.data if fundamentalsDataProto.HasField('data') else ""
+
+        self.wrapper.fundamentalData(reqId, data)
+
+    def processReceiveFAMsgProtoBuf(self, protobuf):
+        receiveFAProto = ReceiveFAProto()
+        receiveFAProto.ParseFromString(protobuf)
+    
+        self.wrapper.receiveFAProtoBuf(receiveFAProto)
+    
+        faDataType = receiveFAProto.faDataType if receiveFAProto.HasField('faDataType') else 0
+        xml = receiveFAProto.xml if receiveFAProto.HasField('xml') else ""
+    
+        self.wrapper.receiveFA(faDataType, xml)
+
+    def processNextValidIdMsgProtoBuf(self, protobuf):
+        nextValidIdProto = NextValidIdProto()
+        nextValidIdProto.ParseFromString(protobuf)
+    
+        self.wrapper.nextValidIdProtoBuf(nextValidIdProto)
+    
+        orderId = nextValidIdProto.orderId if nextValidIdProto.HasField('orderId') else 0
+    
+        self.wrapper.nextValidId(orderId)
+
+    def processCurrentTimeMsgProtoBuf(self, protobuf):
+        currentTimeProto = CurrentTimeProto()
+        currentTimeProto.ParseFromString(protobuf)
+    
+        self.wrapper.currentTimeProtoBuf(currentTimeProto)
+    
+        time = currentTimeProto.currentTime if currentTimeProto.HasField('currentTime') else 0
+    
+        self.wrapper.currentTime(time)
+
+    def processVerifyMessageApiMsgProtoBuf(self, protobuf):
+        verifyMessageApiProto = VerifyMessageApiProto()
+        verifyMessageApiProto.ParseFromString(protobuf)
+    
+        self.wrapper.verifyMessageApiProtoBuf(verifyMessageApiProto)
+    
+        apiData = verifyMessageApiProto.apiData if verifyMessageApiProto.HasField('apiData') else ""
+    
+        self.wrapper.verifyMessageAPI(apiData)
+
+    def processVerifyCompletedMsgProtoBuf(self, protobuf):
+        verifyCompletedProto = VerifyCompletedProto()
+        verifyCompletedProto.ParseFromString(protobuf)
+    
+        self.wrapper.verifyCompletedProtoBuf(verifyCompletedProto)
+    
+        isSuccessful = verifyCompletedProto.isSuccessful if verifyCompletedProto.HasField('isSuccessful') else False
+        errorText = verifyCompletedProto.errorText if verifyCompletedProto.HasField('errorText') else ""
+    
+        self.wrapper.verifyCompleted(isSuccessful, errorText)
+
+    def processDisplayGroupListMsgProtoBuf(self, protobuf):
+        displayGroupListProto = DisplayGroupListProto()
+        displayGroupListProto.ParseFromString(protobuf)
+    
+        self.wrapper.displayGroupListProtoBuf(displayGroupListProto)
+    
+        reqId = displayGroupListProto.reqId if displayGroupListProto.HasField('reqId') else NO_VALID_ID
+        groups = displayGroupListProto.groups if displayGroupListProto.HasField('groups') else ""
+    
+        self.wrapper.displayGroupList(reqId, groups)
+
+    def processDisplayGroupUpdatedMsgProtoBuf(self, protobuf):
+        displayGroupUpdatedProto = DisplayGroupUpdatedProto()
+        displayGroupUpdatedProto.ParseFromString(protobuf)
+    
+        self.wrapper.displayGroupUpdatedProtoBuf(displayGroupUpdatedProto)
+    
+        reqId = displayGroupUpdatedProto.reqId if displayGroupUpdatedProto.HasField('reqId') else NO_VALID_ID
+        contractInfo = displayGroupUpdatedProto.contractInfo if displayGroupUpdatedProto.HasField('contractInfo') else ""
+    
+        self.wrapper.displayGroupUpdated(reqId, contractInfo)
 
     ######################################################################
 
@@ -2397,4 +2917,39 @@ class Decoder(Object):
         IN.HISTORICAL_TICKS_BID_ASK: HandleInfo(proc=processHistoricalTicksBidAskMsgProtoBuf),
         IN.HISTORICAL_TICKS_LAST: HandleInfo(proc=processHistoricalTicksLastMsgProtoBuf),
         IN.TICK_BY_TICK: HandleInfo(proc=processTickByTickMsgProtoBuf),
+        IN.NEWS_BULLETINS: HandleInfo(proc=processNewsBulletinMsgProtoBuf),
+        IN.NEWS_ARTICLE: HandleInfo(proc=processNewsArticleMsgProtoBuf),
+        IN.NEWS_PROVIDERS: HandleInfo(proc=processNewsProvidersMsgProtoBuf),
+        IN.HISTORICAL_NEWS: HandleInfo(proc=processHistoricalNewsMsgProtoBuf),
+        IN.HISTORICAL_NEWS_END: HandleInfo(proc=processHistoricalNewsEndMsgProtoBuf),
+        IN.WSH_META_DATA: HandleInfo(proc=processWshMetaDataMsgProtoBuf),
+        IN.WSH_EVENT_DATA: HandleInfo(proc=processWshEventDataMsgProtoBuf),
+        IN.TICK_NEWS: HandleInfo(proc=processTickNewsMsgProtoBuf),
+        IN.SCANNER_PARAMETERS: HandleInfo(proc=processScannerParametersMsgProtoBuf),
+        IN.SCANNER_DATA: HandleInfo(proc=processScannerDataMsgProtoBuf),
+        IN.FUNDAMENTAL_DATA: HandleInfo(proc=processFundamentalsDataMsgProtoBuf),
+        IN.PNL: HandleInfo(proc=processPnLMsgProtoBuf),
+        IN.PNL_SINGLE: HandleInfo(proc=processPnLSingleMsgProtoBuf),
+        IN.RECEIVE_FA: HandleInfo(proc=processReceiveFAMsgProtoBuf),
+        IN.REPLACE_FA_END: HandleInfo(proc=processReplaceFAEndMsgProtoBuf),
+        IN.COMMISSION_AND_FEES_REPORT: HandleInfo(proc=processCommissionAndFeesReportMsgProtoBuf),
+        IN.HISTORICAL_SCHEDULE: HandleInfo(proc=processHistoricalScheduleMsgProtoBuf),
+        IN.REROUTE_MKT_DATA_REQ: HandleInfo(proc=processRerouteMktDataReqMsgProtoBuf),
+        IN.REROUTE_MKT_DEPTH_REQ: HandleInfo(proc=processRerouteMktDepthReqMsgProtoBuf),
+        IN.SECURITY_DEFINITION_OPTION_PARAMETER: HandleInfo(proc=processSecurityDefinitionOptionParameterMsgProtoBuf),
+        IN.SECURITY_DEFINITION_OPTION_PARAMETER_END: HandleInfo(proc=processSecurityDefinitionOptionParameterEndMsgProtoBuf),
+        IN.SOFT_DOLLAR_TIERS: HandleInfo(proc=processSoftDollarTiersMsgProtoBuf),
+        IN.FAMILY_CODES: HandleInfo(proc=processFamilyCodesMsgProtoBuf),
+        IN.SYMBOL_SAMPLES: HandleInfo(proc=processSymbolSamplesMsgProtoBuf),
+        IN.SMART_COMPONENTS: HandleInfo(proc=processSmartComponentsMsgProtoBuf),
+        IN.MARKET_RULE: HandleInfo(proc=processMarketRuleMsgProtoBuf),
+        IN.USER_INFO: HandleInfo(proc=processUserInfoMsgProtoBuf),
+        IN.NEXT_VALID_ID: HandleInfo(proc=processNextValidIdMsgProtoBuf),
+        IN.CURRENT_TIME: HandleInfo(proc=processCurrentTimeMsgProtoBuf),
+        IN.CURRENT_TIME_IN_MILLIS: HandleInfo(proc=processCurrentTimeInMillisMsgProtoBuf),
+        IN.VERIFY_MESSAGE_API: HandleInfo(proc=processVerifyMessageApiMsgProtoBuf),
+        IN.VERIFY_COMPLETED: HandleInfo(proc=processVerifyCompletedMsgProtoBuf),
+        IN.DISPLAY_GROUP_LIST: HandleInfo(proc=processDisplayGroupListMsgProtoBuf),
+        IN.DISPLAY_GROUP_UPDATED: HandleInfo(proc=processDisplayGroupUpdatedMsgProtoBuf),
+        IN.MKT_DEPTH_EXCHANGES: HandleInfo(proc=processMktDepthExchangesMsgProtoBuf)
     }

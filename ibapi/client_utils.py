@@ -12,8 +12,9 @@ from ibapi.order_condition import OrderCondition, OperatorCondition, ContractCon
 from ibapi.tag_value import TagValue
 from ibapi.utils import isValidIntValue, isValidFloatValue, isValidLongValue, isValidDecimalValue, decimalMaxString
 from ibapi.order_condition import Create
-from ibapi.common import TagValueList
+from ibapi.common import TagValueList, WshEventData
 from ibapi.order_cancel import OrderCancel
+from ibapi.scanner import ScannerSubscription
 
 from ibapi.protobuf.ComboLeg_pb2 import ComboLeg as ComboLegProto
 from ibapi.protobuf.Contract_pb2 import Contract as ContractProto
@@ -58,6 +59,53 @@ from ibapi.protobuf.CancelRealTimeBars_pb2 import CancelRealTimeBars as CancelRe
 from ibapi.protobuf.CancelHeadTimestamp_pb2 import CancelHeadTimestamp as CancelHeadTimestampProto
 from ibapi.protobuf.CancelHistogramData_pb2 import CancelHistogramData as CancelHistogramDataProto
 from ibapi.protobuf.CancelTickByTick_pb2 import CancelTickByTick as CancelTickByTickProto
+from ibapi.protobuf.NewsBulletinsRequest_pb2 import NewsBulletinsRequest as NewsBulletinsRequestProto
+from ibapi.protobuf.CancelNewsBulletins_pb2 import CancelNewsBulletins as CancelNewsBulletinsProto
+from ibapi.protobuf.NewsArticleRequest_pb2 import NewsArticleRequest as NewsArticleRequestProto
+from ibapi.protobuf.NewsProvidersRequest_pb2 import NewsProvidersRequest as NewsProvidersRequestProto
+from ibapi.protobuf.HistoricalNewsRequest_pb2 import HistoricalNewsRequest as HistoricalNewsRequestProto
+from ibapi.protobuf.WshMetaDataRequest_pb2 import WshMetaDataRequest as WshMetaDataRequestProto
+from ibapi.protobuf.CancelWshMetaData_pb2 import CancelWshMetaData as CancelWshMetaDataProto
+from ibapi.protobuf.WshEventDataRequest_pb2 import WshEventDataRequest as WshEventDataRequestProto
+from ibapi.protobuf.CancelWshEventData_pb2 import CancelWshEventData as CancelWshEventDataProto
+from ibapi.protobuf.ScannerParametersRequest_pb2 import ScannerParametersRequest as ScannerParametersRequestProto
+from ibapi.protobuf.ScannerSubscriptionRequest_pb2 import ScannerSubscriptionRequest as ScannerSubscriptionRequestProto
+from ibapi.protobuf.ScannerSubscription_pb2 import ScannerSubscription as ScannerSubscriptionProto
+from ibapi.protobuf.FundamentalsDataRequest_pb2 import FundamentalsDataRequest as FundamentalsDataRequestProto
+from ibapi.protobuf.PnLRequest_pb2 import PnLRequest as PnLRequestProto
+from ibapi.protobuf.PnLSingleRequest_pb2 import PnLSingleRequest as PnLSingleRequestProto
+from ibapi.protobuf.CancelScannerSubscription_pb2 import CancelScannerSubscription as CancelScannerSubscriptionProto
+from ibapi.protobuf.CancelFundamentalsData_pb2 import CancelFundamentalsData as CancelFundamentalsDataProto
+from ibapi.protobuf.CancelPnL_pb2 import CancelPnL as CancelPnLProto
+from ibapi.protobuf.CancelPnLSingle_pb2 import CancelPnLSingle as CancelPnLSingleProto
+from ibapi.protobuf.FARequest_pb2 import FARequest as FARequestProto
+from ibapi.protobuf.FAReplace_pb2 import FAReplace as FAReplaceProto
+from ibapi.protobuf.ExerciseOptionsRequest_pb2 import ExerciseOptionsRequest as ExerciseOptionsRequestProto
+from ibapi.protobuf.CalculateImpliedVolatilityRequest_pb2 import CalculateImpliedVolatilityRequest as CalculateImpliedVolatilityRequestProto
+from ibapi.protobuf.CancelCalculateImpliedVolatility_pb2 import CancelCalculateImpliedVolatility as CancelCalculateImpliedVolatilityProto
+from ibapi.protobuf.CalculateOptionPriceRequest_pb2 import CalculateOptionPriceRequest as CalculateOptionPriceRequestProto
+from ibapi.protobuf.CancelCalculateOptionPrice_pb2 import CancelCalculateOptionPrice as CancelCalculateOptionPriceProto
+from ibapi.protobuf.SecDefOptParamsRequest_pb2 import SecDefOptParamsRequest as SecDefOptParamsRequestProto
+from ibapi.protobuf.SoftDollarTiersRequest_pb2 import SoftDollarTiersRequest as SoftDollarTiersRequestProto
+from ibapi.protobuf.FamilyCodesRequest_pb2 import FamilyCodesRequest as FamilyCodesRequestProto
+from ibapi.protobuf.MatchingSymbolsRequest_pb2 import MatchingSymbolsRequest as MatchingSymbolsRequestProto
+from ibapi.protobuf.SmartComponentsRequest_pb2 import SmartComponentsRequest as SmartComponentsRequestProto
+from ibapi.protobuf.MarketRuleRequest_pb2 import MarketRuleRequest as MarketRuleRequestProto
+from ibapi.protobuf.UserInfoRequest_pb2 import UserInfoRequest as UserInfoRequestProto
+from ibapi.protobuf.IdsRequest_pb2 import IdsRequest as IdsRequestProto
+from ibapi.protobuf.CurrentTimeRequest_pb2 import CurrentTimeRequest as CurrentTimeRequestProto
+from ibapi.protobuf.CurrentTimeInMillisRequest_pb2 import CurrentTimeInMillisRequest as CurrentTimeInMillisRequestProto
+from ibapi.protobuf.StartApiRequest_pb2 import StartApiRequest as StartApiRequestProto
+from ibapi.protobuf.SetServerLogLevelRequest_pb2 import SetServerLogLevelRequest as SetServerLogLevelRequestProto
+from ibapi.protobuf.VerifyRequest_pb2 import VerifyRequest as VerifyRequestProto
+from ibapi.protobuf.VerifyMessageRequest_pb2 import VerifyMessageRequest as VerifyMessageRequestProto
+from ibapi.protobuf.QueryDisplayGroupsRequest_pb2 import QueryDisplayGroupsRequest as QueryDisplayGroupsRequestProto
+from ibapi.protobuf.SubscribeToGroupEventsRequest_pb2 import SubscribeToGroupEventsRequest as SubscribeToGroupEventsRequestProto
+from ibapi.protobuf.UpdateDisplayGroupRequest_pb2 import UpdateDisplayGroupRequest as UpdateDisplayGroupRequestProto
+from ibapi.protobuf.UnsubscribeFromGroupEventsRequest_pb2 import UnsubscribeFromGroupEventsRequest as UnsubscribeFromGroupEventsRequestProto
+from ibapi.protobuf.MarketDepthExchangesRequest_pb2 import MarketDepthExchangesRequest as MarketDepthExchangesRequestProto
+from ibapi.protobuf.CancelContractData_pb2 import CancelContractData as CancelContractDataProto
+from ibapi.protobuf.CancelHistoricalTicks_pb2 import CancelHistoricalTicks as CancelHistoricalTicksProto
 
 from ibapi.errors import (
     ERROR_ENCODING_PROTOBUF
@@ -698,3 +746,367 @@ def createCancelTickByTickProto(reqId: int) -> CancelTickByTickProto:
     cancelTickByTickProto = CancelTickByTickProto()
     if isValidIntValue(reqId): cancelTickByTickProto.reqId = reqId
     return cancelTickByTickProto
+
+@staticmethod
+def createNewsBulletinsRequestProto(allMessages: bool) -> NewsBulletinsRequestProto:
+    newsBulletinsRequestProto = NewsBulletinsRequestProto()
+    if (allMessages): newsBulletinsRequestProto.allMessages = allMessages
+    return newsBulletinsRequestProto
+
+@staticmethod
+def createCancelNewsBulletinsProto() -> CancelNewsBulletinsProto:
+    cancelNewsBulletinsProto = CancelNewsBulletinsProto()
+    return cancelNewsBulletinsProto
+
+@staticmethod
+def createNewsArticleRequestProto(reqId: int, providerCode: str, articleId: str, newsArticleOptionsList: TagValueList) -> NewsArticleRequestProto:
+    newsArticleRequestProto = NewsArticleRequestProto()
+    if isValidIntValue(reqId): newsArticleRequestProto.reqId = reqId
+    if providerCode: newsArticleRequestProto.providerCode = providerCode
+    if articleId: newsArticleRequestProto.articleId = articleId
+    fillTagValueList(newsArticleOptionsList, newsArticleRequestProto.newsArticleOptions)
+    return newsArticleRequestProto
+
+@staticmethod
+def createNewsProvidersRequestProto() -> NewsProvidersRequestProto:
+    newsProvidersRequestProto = NewsProvidersRequestProto()
+    return newsProvidersRequestProto
+
+@staticmethod
+def createHistoricalNewsRequestProto(reqId: int, conId: int, providerCodes: str, startDateTime: str, endDateTime: str, totalResults: int, historicalNewsOptionsList: TagValueList) -> HistoricalNewsRequestProto:
+    historicalNewsRequestProto = HistoricalNewsRequestProto()
+    if isValidIntValue(reqId): historicalNewsRequestProto.reqId = reqId
+    if isValidIntValue(conId): historicalNewsRequestProto.conId = conId
+    if providerCodes: historicalNewsRequestProto.providerCodes = providerCodes
+    if startDateTime: historicalNewsRequestProto.startDateTime = startDateTime
+    if endDateTime: historicalNewsRequestProto.endDateTime = endDateTime
+    if isValidIntValue(totalResults): historicalNewsRequestProto.totalResults = totalResults
+    fillTagValueList(historicalNewsOptionsList, historicalNewsRequestProto.historicalNewsOptions)
+    return historicalNewsRequestProto
+
+@staticmethod
+def createWshMetaDataRequestProto(reqId: int) -> WshMetaDataRequestProto:
+    wshMetaDataRequestProto = WshMetaDataRequestProto()
+    if isValidIntValue(reqId): wshMetaDataRequestProto.reqId = reqId
+    return wshMetaDataRequestProto
+
+@staticmethod
+def createCancelWshMetaDataProto(reqId: int) -> CancelWshMetaDataProto:
+    cancelWshMetaDataProto = CancelWshMetaDataProto()
+    if isValidIntValue(reqId): cancelWshMetaDataProto.reqId = reqId
+    return cancelWshMetaDataProto
+
+@staticmethod
+def createWshEventDataRequestProto(reqId: int, wshEventData: WshEventData) -> WshEventDataRequestProto:
+    wshEventDataRequestProto = WshEventDataRequestProto()
+    if isValidIntValue(reqId): wshEventDataRequestProto.reqId = reqId
+    
+    if wshEventData is not None:
+        if isValidIntValue(wshEventData.conId): wshEventDataRequestProto.conId = wshEventData.conId
+        if wshEventData.filter: wshEventDataRequestProto.filter = wshEventData.filter
+        if wshEventData.fillWatchlist: wshEventDataRequestProto.fillWatchlist = wshEventData.fillWatchlist
+        if wshEventData.fillPortfolio: wshEventDataRequestProto.fillPortfolio = wshEventData.fillPortfolio
+        if wshEventData.fillCompetitors: wshEventDataRequestProto.fillCompetitors = wshEventData.fillCompetitors
+        if wshEventData.startDate: wshEventDataRequestProto.startDate = wshEventData.startDate
+        if wshEventData.endDate: wshEventDataRequestProto.endDate = wshEventData.endDate
+        if isValidIntValue(wshEventData.totalLimit): wshEventDataRequestProto.totalLimit = wshEventData.totalLimit
+    
+    return wshEventDataRequestProto
+
+@staticmethod
+def createCancelWshEventDataProto(reqId: int) -> CancelWshEventDataProto:
+    cancelWshEventDataProto = CancelWshEventDataProto()
+    if isValidIntValue(reqId): cancelWshEventDataProto.reqId = reqId
+    return cancelWshEventDataProto
+
+@staticmethod
+def createScannerParametersRequestProto() -> ScannerParametersRequestProto:
+    scannerParametersRequestProto = ScannerParametersRequestProto()
+    return scannerParametersRequestProto
+
+@staticmethod
+def createScannerSubscriptionRequestProto(reqId: int, subscription: ScannerSubscription, 
+        scannerSubscriptionOptionsList: TagValueList, scannerSubscriptionFilterOptionsList: TagValueList) -> ScannerSubscriptionRequestProto:
+    scannerSubscriptionRequestProto = ScannerSubscriptionRequestProto()
+    if isValidIntValue(reqId): scannerSubscriptionRequestProto.reqId = reqId
+    scannerSubscriptionProto = createScannerSubscriptionProto(subscription, scannerSubscriptionOptionsList, scannerSubscriptionFilterOptionsList)
+    if scannerSubscriptionProto is not None: scannerSubscriptionRequestProto.scannerSubscription.CopyFrom(scannerSubscriptionProto)
+    return scannerSubscriptionRequestProto
+
+@staticmethod
+def createScannerSubscriptionProto(subscription: ScannerSubscription, 
+        scannerSubscriptionOptionsList: TagValueList, scannerSubscriptionFilterOptionsList: TagValueList) -> ScannerSubscriptionProto:
+    if subscription is None:
+        return None
+    scannerSubscriptionProto = ScannerSubscriptionProto()
+    if isValidIntValue(subscription.numberOfRows): scannerSubscriptionProto.numberOfRows = subscription.numberOfRows
+    if subscription.instrument: scannerSubscriptionProto.instrument = subscription.instrument
+    if subscription.locationCode: scannerSubscriptionProto.locationCode = subscription.locationCode
+    if subscription.scanCode: scannerSubscriptionProto.scanCode = subscription.scanCode
+    if isValidFloatValue(subscription.abovePrice): scannerSubscriptionProto.abovePrice = subscription.abovePrice
+    if isValidFloatValue(subscription.belowPrice): scannerSubscriptionProto.belowPrice = subscription.belowPrice
+    if isValidIntValue(subscription.aboveVolume): scannerSubscriptionProto.aboveVolume = subscription.aboveVolume
+    if isValidIntValue(subscription.averageOptionVolumeAbove): scannerSubscriptionProto.averageOptionVolumeAbove = subscription.averageOptionVolumeAbove
+    if isValidFloatValue(subscription.marketCapAbove): scannerSubscriptionProto.marketCapAbove = subscription.marketCapAbove
+    if isValidFloatValue(subscription.marketCapBelow): scannerSubscriptionProto.marketCapBelow = subscription.marketCapBelow
+    if subscription.moodyRatingAbove: scannerSubscriptionProto.moodyRatingAbove = subscription.moodyRatingAbove
+    if subscription.moodyRatingBelow: scannerSubscriptionProto.moodyRatingBelow = subscription.moodyRatingBelow
+    if subscription.spRatingAbove: scannerSubscriptionProto.spRatingAbove = subscription.spRatingAbove
+    if subscription.spRatingBelow: scannerSubscriptionProto.spRatingBelow = subscription.spRatingBelow
+    if subscription.maturityDateAbove: scannerSubscriptionProto.maturityDateAbove = subscription.maturityDateAbove
+    if subscription.maturityDateBelow: scannerSubscriptionProto.maturityDateBelow = subscription.maturityDateBelow
+    if isValidFloatValue(subscription.couponRateAbove): scannerSubscriptionProto.couponRateAbove = subscription.couponRateAbove
+    if isValidFloatValue(subscription.couponRateBelow): scannerSubscriptionProto.couponRateBelow = subscription.couponRateBelow
+    if subscription.excludeConvertible: scannerSubscriptionProto.excludeConvertible = subscription.excludeConvertible
+    if subscription.scannerSettingPairs: scannerSubscriptionProto.scannerSettingPairs = subscription.scannerSettingPairs
+    if subscription.stockTypeFilter: scannerSubscriptionProto.stockTypeFilter = subscription.stockTypeFilter
+    fillTagValueList(scannerSubscriptionOptionsList, scannerSubscriptionProto.scannerSubscriptionOptions)
+    fillTagValueList(scannerSubscriptionFilterOptionsList, scannerSubscriptionProto.scannerSubscriptionFilterOptions)
+    return scannerSubscriptionProto
+
+@staticmethod
+def createFundamentalsDataRequestProto(reqId: int, contract: Contract, reportType: str, fundamentalsDataOptionsList: TagValueList) -> FundamentalsDataRequestProto:
+    fundamentalsDataRequestProto = FundamentalsDataRequestProto()
+    if isValidIntValue(reqId): fundamentalsDataRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: fundamentalsDataRequestProto.contract.CopyFrom(contractProto)
+    if reportType: fundamentalsDataRequestProto.reportType = reportType
+    fillTagValueList(fundamentalsDataOptionsList, fundamentalsDataRequestProto.fundamentalsDataOptions)
+    return fundamentalsDataRequestProto
+
+@staticmethod
+def createPnLRequestProto(reqId: int, account: str, modelCode: str) -> PnLRequestProto:
+    pnlRequestProto = PnLRequestProto()
+    if isValidIntValue(reqId): pnlRequestProto.reqId = reqId
+    if account: pnlRequestProto.account = account
+    if modelCode: pnlRequestProto.modelCode = modelCode
+    return pnlRequestProto
+
+@staticmethod
+def createPnLSingleRequestProto(reqId: int, account: str, modelCode: str, conId: int) -> PnLSingleRequestProto:
+    pnlSingleRequestProto = PnLSingleRequestProto()
+    if isValidIntValue(reqId): pnlSingleRequestProto.reqId = reqId
+    if account: pnlSingleRequestProto.account = account
+    if modelCode: pnlSingleRequestProto.modelCode = modelCode
+    if isValidIntValue(conId): pnlSingleRequestProto.conId = conId
+    return pnlSingleRequestProto
+
+@staticmethod
+def createCancelScannerSubscriptionProto(reqId: int) -> CancelScannerSubscriptionProto:
+    cancelScannerSubscriptionProto = CancelScannerSubscriptionProto()
+    if isValidIntValue(reqId): cancelScannerSubscriptionProto.reqId = reqId
+    return cancelScannerSubscriptionProto
+
+@staticmethod
+def createCancelFundamentalsDataProto(reqId: int) -> CancelFundamentalsDataProto:
+    cancelFundamentalsDataProto = CancelFundamentalsDataProto()
+    if isValidIntValue(reqId): cancelFundamentalsDataProto.reqId = reqId
+    return cancelFundamentalsDataProto
+
+@staticmethod
+def createCancelPnLProto(reqId: int) -> CancelPnLProto:
+    cancelPnLProto = CancelPnLProto()
+    if isValidIntValue(reqId): cancelPnLProto.reqId = reqId
+    return cancelPnLProto
+
+@staticmethod
+def createCancelPnLSingleProto(reqId: int) -> CancelPnLSingleProto:
+    cancelPnLSingleProto = CancelPnLSingleProto()
+    if isValidIntValue(reqId): cancelPnLSingleProto.reqId = reqId
+    return cancelPnLSingleProto
+
+@staticmethod
+def createFARequestProto(faDataType: int) -> FARequestProto:
+    faRequestProto = FARequestProto()
+    if isValidIntValue(faDataType): faRequestProto.faDataType = faDataType
+    return faRequestProto
+
+@staticmethod
+def createFAReplaceProto(reqId: int, faDataType: int, xml: str) -> FAReplaceProto:
+    faReplaceProto = FAReplaceProto()
+    if isValidIntValue(reqId): faReplaceProto.reqId = reqId
+    if isValidIntValue(faDataType): faReplaceProto.faDataType = faDataType
+    if xml: faReplaceProto.xml = xml
+    return faReplaceProto
+
+@staticmethod
+def createExerciseOptionsRequestProto(orderId: int, contract: Contract, exerciseAction: int, exerciseQuantity: int, account: str, override: bool,
+        manualOrderTime: str, customerAccount: str, professionalCustomer: bool) -> ExerciseOptionsRequestProto:
+    exerciseOptionsRequestProto = ExerciseOptionsRequestProto()
+    if isValidIntValue(orderId): exerciseOptionsRequestProto.orderId = orderId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: exerciseOptionsRequestProto.contract.CopyFrom(contractProto)
+    if isValidIntValue(exerciseAction): exerciseOptionsRequestProto.exerciseAction = exerciseAction
+    if isValidIntValue(exerciseQuantity): exerciseOptionsRequestProto.exerciseQuantity = exerciseQuantity
+    if account: exerciseOptionsRequestProto.account = account
+    if override: exerciseOptionsRequestProto.override = override
+    if manualOrderTime: exerciseOptionsRequestProto.manualOrderTime = manualOrderTime
+    if customerAccount: exerciseOptionsRequestProto.customerAccount = customerAccount
+    if professionalCustomer: exerciseOptionsRequestProto.professionalCustomer = professionalCustomer
+    return exerciseOptionsRequestProto
+
+@staticmethod
+def createCalculateImpliedVolatilityRequestProto(reqId: int, contract: Contract, optionPrice: float, underPrice: float, impliedVolatilityOptionsList: TagValueList) -> CalculateImpliedVolatilityRequestProto:
+    calculateImpliedVolatilityRequestProto = CalculateImpliedVolatilityRequestProto()
+    if isValidIntValue(reqId): calculateImpliedVolatilityRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: calculateImpliedVolatilityRequestProto.contract.CopyFrom(contractProto)
+    if isValidFloatValue(optionPrice): calculateImpliedVolatilityRequestProto.optionPrice = optionPrice
+    if isValidFloatValue(underPrice): calculateImpliedVolatilityRequestProto.underPrice = underPrice
+    fillTagValueList(impliedVolatilityOptionsList, calculateImpliedVolatilityRequestProto.impliedVolatilityOptions)
+    return calculateImpliedVolatilityRequestProto
+
+@staticmethod
+def createCancelCalculateImpliedVolatilityProto(reqId: int) -> CancelCalculateImpliedVolatilityProto:
+    cancelCalculateImpliedVolatilityProto = CancelCalculateImpliedVolatilityProto()
+    if isValidIntValue(reqId): cancelCalculateImpliedVolatilityProto.reqId = reqId
+    return cancelCalculateImpliedVolatilityProto
+
+@staticmethod
+def createCalculateOptionPriceRequestProto(reqId: int, contract: Contract, volatility: float, underPrice: float, optionPriceOptionsList: TagValueList) -> CalculateOptionPriceRequestProto:
+    calculateOptionPriceRequestProto = CalculateOptionPriceRequestProto()
+    if isValidIntValue(reqId): calculateOptionPriceRequestProto.reqId = reqId
+    contractProto = createContractProto(contract, None)
+    if contractProto is not None: calculateOptionPriceRequestProto.contract.CopyFrom(contractProto)
+    if isValidFloatValue(volatility): calculateOptionPriceRequestProto.volatility = volatility
+    if isValidFloatValue(underPrice): calculateOptionPriceRequestProto.underPrice = underPrice
+    fillTagValueList(optionPriceOptionsList, calculateOptionPriceRequestProto.optionPriceOptions)
+    return calculateOptionPriceRequestProto
+
+@staticmethod
+def createCancelCalculateOptionPriceProto(reqId: int) -> CancelCalculateOptionPriceProto:
+    cancelCalculateOptionPriceProto = CancelCalculateOptionPriceProto()
+    if isValidIntValue(reqId): cancelCalculateOptionPriceProto.reqId = reqId
+    return cancelCalculateOptionPriceProto
+
+@staticmethod
+def createSecDefOptParamsRequestProto(reqId: int, underlyingSymbol: str, futFopExchange: str, underlyingSecType: str, underlyingConId: int) -> SecDefOptParamsRequestProto:
+    secDefOptParamsRequestProto = SecDefOptParamsRequestProto()
+    if isValidIntValue(reqId): secDefOptParamsRequestProto.reqId = reqId
+    if underlyingSymbol: secDefOptParamsRequestProto.underlyingSymbol = underlyingSymbol
+    if futFopExchange: secDefOptParamsRequestProto.futFopExchange = futFopExchange
+    if underlyingSecType: secDefOptParamsRequestProto.underlyingSecType = underlyingSecType
+    if isValidIntValue(underlyingConId): secDefOptParamsRequestProto.underlyingConId = underlyingConId
+    return secDefOptParamsRequestProto
+
+@staticmethod
+def createSoftDollarTiersRequestProto(reqId: int) -> SoftDollarTiersRequestProto:
+    softDollarTiersRequestProto = SoftDollarTiersRequestProto()
+    if isValidIntValue(reqId): softDollarTiersRequestProto.reqId = reqId
+    return softDollarTiersRequestProto
+
+@staticmethod
+def createFamilyCodesRequestProto() -> FamilyCodesRequestProto:
+    familyCodesRequestProto = FamilyCodesRequestProto()
+    return familyCodesRequestProto
+
+@staticmethod
+def createMatchingSymbolsRequestProto(reqId: int, pattern: str) -> MatchingSymbolsRequestProto:
+    matchingSymbolsRequestProto = MatchingSymbolsRequestProto()
+    if isValidIntValue(reqId): matchingSymbolsRequestProto.reqId = reqId
+    if pattern: matchingSymbolsRequestProto.pattern = pattern
+    return matchingSymbolsRequestProto
+
+@staticmethod
+def createSmartComponentsRequestProto(reqId: int, bboExchange: str) -> SmartComponentsRequestProto:
+    smartComponentsRequestProto = SmartComponentsRequestProto()
+    if isValidIntValue(reqId): smartComponentsRequestProto.reqId = reqId
+    if bboExchange: smartComponentsRequestProto.bboExchange = bboExchange
+    return smartComponentsRequestProto
+
+@staticmethod
+def createMarketRuleRequestProto(marketRuleId: int) -> MarketRuleRequestProto:
+    marketRuleRequestProto = MarketRuleRequestProto()
+    if isValidIntValue(marketRuleId): marketRuleRequestProto.marketRuleId = marketRuleId
+    return marketRuleRequestProto
+
+@staticmethod
+def createUserInfoRequestProto(reqId: int) -> UserInfoRequestProto:
+    userInfoRequestProto = UserInfoRequestProto()
+    if isValidIntValue(reqId): userInfoRequestProto.reqId = reqId
+    return userInfoRequestProto
+
+@staticmethod
+def createIdsRequestProto(numIds: int) -> IdsRequestProto:
+    idsRequestProto = IdsRequestProto()
+    if isValidIntValue(numIds): idsRequestProto.numIds = numIds
+    return idsRequestProto
+
+@staticmethod
+def createCurrentTimeRequestProto() -> CurrentTimeRequestProto:
+    currentTimeRequestProto = CurrentTimeRequestProto()
+    return currentTimeRequestProto
+
+@staticmethod
+def createCurrentTimeInMillisRequestProto() -> CurrentTimeInMillisRequestProto:
+    currentTimeInMillisRequestProto = CurrentTimeInMillisRequestProto()
+    return currentTimeInMillisRequestProto
+
+@staticmethod
+def createStartApiRequestProto(clientId: int, optionalCapabilities: str) -> StartApiRequestProto:
+    startApiRequestProto = StartApiRequestProto()
+    if isValidIntValue(clientId): startApiRequestProto.clientId = clientId
+    if optionalCapabilities: startApiRequestProto.optionalCapabilities = optionalCapabilities
+    return startApiRequestProto
+
+@staticmethod
+def createSetServerLogLevelRequestProto(logLevel: int) -> SetServerLogLevelRequestProto:
+    setServerLogLevelRequestProto = SetServerLogLevelRequestProto()
+    if isValidIntValue(logLevel): setServerLogLevelRequestProto.logLevel = logLevel
+    return setServerLogLevelRequestProto
+
+@staticmethod
+def createVerifyRequestProto(apiName: str, apiVersion: str) -> VerifyRequestProto:
+    verifyRequestProto = VerifyRequestProto()
+    if apiName: verifyRequestProto.apiName = apiName
+    if apiVersion: verifyRequestProto.apiVersion = apiVersion
+    return verifyRequestProto
+
+@staticmethod
+def createVerifyMessageRequestProto(apiData: str) -> VerifyMessageRequestProto:
+    verifyMessageRequestProto = VerifyMessageRequestProto()
+    if apiData: verifyMessageRequestProto.apiData = apiData
+    return verifyMessageRequestProto
+
+@staticmethod
+def createQueryDisplayGroupsRequestProto(reqId: int) -> QueryDisplayGroupsRequestProto:
+    queryDisplayGroupsRequestProto = QueryDisplayGroupsRequestProto()
+    if isValidIntValue(reqId): queryDisplayGroupsRequestProto.reqId = reqId
+    return queryDisplayGroupsRequestProto
+
+@staticmethod
+def createSubscribeToGroupEventsRequestProto(reqId: int, groupId: int) -> SubscribeToGroupEventsRequestProto:
+    subscribeToGroupEventsRequestProto = SubscribeToGroupEventsRequestProto()
+    if isValidIntValue(reqId): subscribeToGroupEventsRequestProto.reqId = reqId
+    if isValidIntValue(groupId): subscribeToGroupEventsRequestProto.groupId = groupId
+    return subscribeToGroupEventsRequestProto
+
+@staticmethod
+def createUpdateDisplayGroupRequestProto(reqId: int, contractInfo: str) -> UpdateDisplayGroupRequestProto:
+    updateDisplayGroupRequestProto = UpdateDisplayGroupRequestProto()
+    if isValidIntValue(reqId): updateDisplayGroupRequestProto.reqId = reqId
+    if contractInfo: updateDisplayGroupRequestProto.contractInfo = contractInfo
+    return updateDisplayGroupRequestProto
+
+@staticmethod
+def createUnsubscribeFromGroupEventsRequestProto(reqId: int) -> UnsubscribeFromGroupEventsRequestProto:
+    unsubscribeFromGroupEventsRequestProto = UnsubscribeFromGroupEventsRequestProto()
+    if isValidIntValue(reqId): unsubscribeFromGroupEventsRequestProto.reqId = reqId
+    return unsubscribeFromGroupEventsRequestProto
+
+@staticmethod
+def createMarketDepthExchangesRequestProto() -> MarketDepthExchangesRequestProto:
+    marketDepthExchangesRequestProto = MarketDepthExchangesRequestProto()
+    return marketDepthExchangesRequestProto
+
+@staticmethod
+def createCancelContractDataProto(reqId: int) -> CancelContractDataProto:
+    cancelContractDataProto = CancelContractDataProto()
+    if isValidIntValue(reqId): cancelContractDataProto.reqId = reqId
+    return cancelContractDataProto
+
+@staticmethod
+def createCancelHistoricalTicksProto(reqId: int) -> CancelHistoricalTicksProto:
+    cancelHistoricalTicksProto = CancelHistoricalTicksProto()
+    if isValidIntValue(reqId): cancelHistoricalTicksProto.reqId = reqId
+    return cancelHistoricalTicksProto
