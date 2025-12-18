@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "algotrader_ibapi"
-version = "10.41.01"
+version = "10.42.01"
 description="Python IB API"
 authors = ["IBG LLC <dnastase@interactivebrokers.com>"]
 readme = "README.md"
