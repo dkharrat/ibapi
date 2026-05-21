@@ -1,5 +1,5 @@
 """
-Copyright (C) 2025 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
+Copyright (C) 2026 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
  and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable.
 """
 
@@ -14,7 +14,6 @@ The known server versions.
 # MIN_SERVER_VER_WHAT_IF_ORDERS       = 36
 # MIN_SERVER_VER_CONTRACT_CONID       = 37
 MIN_SERVER_VER_PTA_ORDERS = 39
-MIN_SERVER_VER_FUNDAMENTAL_DATA = 40
 MIN_SERVER_VER_DELTA_NEUTRAL = 40
 MIN_SERVER_VER_CONTRACT_DATA_CHAIN = 40
 MIN_SERVER_VER_SCALE_ORDERS2 = 40
@@ -171,9 +170,11 @@ MIN_SERVER_VER_MARKET_DATA_VOLUMES_IN_SHARES = 220
 MIN_SERVER_VER_UPDATE_CONFIG = 221
 MIN_SERVER_VER_FRACTIONAL_LAST_SIZE = 222
 MIN_SERVER_VER_HEDGE_MAX_SIZE = 223
+MIN_SERVER_VER_USE_PRECISION_FROM_SEC_DEF = 224
+MIN_SERVER_VER_ODD_LOT_BID_ASK_QUOTES = 225
 
 # 100+ messaging */
 # 100 = enhanced handshake, msg length prefixes
 
 MIN_CLIENT_VER = 100
-MAX_CLIENT_VER = MIN_SERVER_VER_HEDGE_MAX_SIZE
+MAX_CLIENT_VER = MIN_SERVER_VER_ODD_LOT_BID_ASK_QUOTES
