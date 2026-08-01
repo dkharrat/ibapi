@@ -1,20 +1,22 @@
 """
-Copyright (C) 2025 Interactive Brokers LLC. All rights reserved. This code is subject to the terms
- and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable.
+Python TWS API Client
 
-This is the interface that will need to be overloaded by the customer so
-that their code can receive info from the TWS/IBGW.
+Copyright (C) 2013-2026  Interactive Brokers LLC
 
-NOTE: the methods use type annotations to describe the types of the arguments.
-This is used by the Decoder to dynamically and automatically decode the
-received message into the given EWrapper method. This method can only be
-used for the most simple messages, but it's still huge helper.
-Also this method currently automatically decode a 'version' field in the
-message. However having a 'version' field is a legacy thing, newer
-message use the 'unified version': the agreed up min version of both
-server and client.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+
 import logging
 from decimal import Decimal
 
