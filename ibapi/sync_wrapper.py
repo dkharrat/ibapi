@@ -1,10 +1,22 @@
-'''
-2002-2025: Use is subject to Interactive Brokers TWS API Non-Commercial License ("License") terms. 
-This License is NOT for anybody who is developing software applications that they wish to: (a) sell to third 
-party users for a fee, or (b) give to third party users to generate an indirect financial benefit (e.g., 
-commissions). If You wish to make a software application for the purposes described in the preceding 
-sentence then please contact Interactive Brokers
-'''
+"""
+Python TWS API Client
+
+Copyright (C) 2013-2026  Interactive Brokers LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 # Synchronous Wrapper for TWS Python API
 
 """
