@@ -203,6 +203,7 @@ class Order(Object):
         self.conditions = []  # std::vector<std::shared_ptr<OrderCondition>>
         self.conditionsCancelOrder = False
         self.conditionsIgnoreRth = False
+        self.conditionsIncludeOvernight = False
 
         # ext operator
         self.extOperator = ""

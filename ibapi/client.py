@@ -161,7 +161,8 @@ from ibapi.server_versions import (
     MIN_SERVER_VER_ATTACHED_ORDERS,
     MIN_SERVER_VER_CONFIG,
     MIN_SERVER_VER_UPDATE_CONFIG,
-    MIN_SERVER_VER_HEDGE_MAX_SIZE
+    MIN_SERVER_VER_HEDGE_MAX_SIZE,
+    UNIFIED_VERSION_COND_ORDER_WITH_OVERNIGHT_PARAM
 )
 
 from ibapi.utils import ClientException, log_
@@ -2842,6 +2843,10 @@ class EClient(object):
         if self.serverVersion() < MIN_SERVER_VER_HEDGE_MAX_SIZE:
             if order.HasField('hedgeMaxSize'):
                 return "hedgeMaxSize"
+
+        if self.serverVersion() < UNIFIED_VERSION_COND_ORDER_WITH_OVERNIGHT_PARAM:
+            if order.HasField('conditionsIncludeOvernight'):
+                return "conditionsIncludeOvernight"
 
         return None
 

@@ -346,6 +346,7 @@ def createOrderProto(order: Order) -> OrderProto:
     if orderConditionList is not None and orderConditionList: orderProto.conditions.extend(orderConditionList)
     if order.conditionsCancelOrder: orderProto.conditionsCancelOrder = order.conditionsCancelOrder
     if order.conditionsIgnoreRth: orderProto.conditionsIgnoreRth = order.conditionsIgnoreRth
+    if order.conditionsIncludeOvernight: orderProto.conditionsIncludeOvernight = order.conditionsIncludeOvernight
 
     if order.modelCode: orderProto.modelCode = order.modelCode
     if order.extOperator: orderProto.extOperator = order.extOperator
