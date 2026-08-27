@@ -256,6 +256,7 @@ def decodeOrder(orderId: int, contractProto: ContractProto, orderProto: OrderPro
     if conditions is not None and conditions: order.conditions = conditions
     if orderProto.HasField('conditionsIgnoreRth'): order.conditionsIgnoreRth = orderProto.conditionsIgnoreRth
     if orderProto.HasField('conditionsCancelOrder'): order.conditionsCancelOrder = orderProto.conditionsCancelOrder
+    if orderProto.HasField('conditionsIncludeOvernight'): order.conditionsIncludeOvernight = orderProto.conditionsIncludeOvernight
 
     if orderProto.HasField('adjustedOrderType'): order.adjustedOrderType = orderProto.adjustedOrderType
     if orderProto.HasField('triggerPrice'): order.triggerPrice = orderProto.triggerPrice
