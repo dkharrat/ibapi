@@ -23,13 +23,18 @@ jobs:
       - name: Get Latest Version
         id: version
         run: |
-          response=$(curl -s https://interactivebrokers.github.io)
-          file_url=https://$(echo "$response" | grep -oP '(interactivebrokers.*twsapi_macunix.*zip)(?=.*${{ inputs.channel }})')
-          file_name=$(echo "$file_url" | grep -oP 'twsapi_macunix.*.zip')
-          build_version=$(echo "$file_url" | grep -oP '(?<=twsapi_macunix.).*(?=.zip)' | sed 's/^\([0-9][0-9]\)\(.*\)$/\1.\2/')
           channel="$(echo "${{ inputs.channel }}" | tr '[:upper:]' '[:lower:]')"
-          echo "file_url=$file_url" >> $GITHUB_OUTPUT
+          response=$(curl -sSfL https://download2.interactivebrokers.com/installers/tws-api/index.html)
+          api_version=$(echo "$response" | tr -d '\n' | grep -oP '<span>${{ inputs.channel }}</span>.*?Version:\s*<strong>\K[0-9]+\.[0-9]+' | head -1)
+          if [ -z "$api_version" ]; then
+            echo "::error::Could not find ${{ inputs.channel }} version on the TWS API download page"
+            exit 1
+          fi
+          build_version=$(echo "$api_version" | sed 's/^\([0-9][0-9]\)\(.*\)$/\1.\2/')
+          file_name="tws-api-$channel-linux-x64.sh"
+          echo "file_url=https://download2.interactivebrokers.com/installers/tws-api/$channel/$file_name" >> $GITHUB_OUTPUT
           echo "file_name=$file_name" >> $GITHUB_OUTPUT
+          echo "api_version=$api_version" >> $GITHUB_OUTPUT
           echo "build_version=$build_version" >> $GITHUB_OUTPUT
           echo "channel=$channel" >> $GITHUB_OUTPUT
   
@@ -62,7 +67,8 @@ jobs:
       - name: Extract and Move
         if: ${{ steps.check-update.outputs.has_update == 'true' }}
         run: |
-          unzip -o "/tmp/${{ steps.version.outputs.file_name }}" -d /tmp
+          sh "/tmp/${{ steps.version.outputs.file_name }}" -q -dir /tmp/IBJts
+          grep -qx "API_Version=${{ steps.version.outputs.api_version }}" /tmp/IBJts/API_VersionNum.txt
           rsync -a /tmp/IBJts/source/pythonclient/ ./
           sed -i 's/version = "[^"]*"/version = "'"${{ steps.version.outputs.build_version }}"'"/' pyproject.toml
   
