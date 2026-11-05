@@ -125,3 +125,4 @@ FAIL_SEND_CANCEL_CONTRACT_DATA = CodeMsgPair(590, "Cancel Contract Data Sending 
 FAIL_SEND_CANCEL_HISTORICAL_TICKS = CodeMsgPair(591, "Cancel Historical Ticks Sending Error - ")
 FAIL_SEND_REQCONFIG = CodeMsgPair(592, "Request Config Sending Error - ")
 FAIL_SEND_UPDATECONFIG = CodeMsgPair(593, "Update Config Request Sending Error - ")
+ERROR_DECODING_PROTOBUF = CodeMsgPair(594, "Error decoding protobuf message")

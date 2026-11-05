@@ -20,6 +20,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from ibapi.const import NO_VALID_ID
 from ibapi.utils import getEnumTypeFromString
 from ibapi.common import PROTOBUF_MSG_ID
+from google.protobuf.message import DecodeError
 
 """
 The Decoder knows how to transform a message's payload into higher level
@@ -37,7 +38,7 @@ from ibapi.softdollartier import SoftDollarTier
 from ibapi.ticktype import *  # @UnusedWildImport
 from ibapi.tag_value import TagValue
 from ibapi.scanner import ScanData
-from ibapi.errors import BAD_MESSAGE, UNKNOWN_ID
+from ibapi.errors import BAD_MESSAGE, UNKNOWN_ID, ERROR_DECODING_PROTOBUF
 from ibapi.common import *  # @UnusedWildImport
 from ibapi.orderdecoder import OrderDecoder
 from ibapi.contract import FundDistributionPolicyIndicator
@@ -2792,6 +2793,10 @@ class Decoder(Object):
                 NO_VALID_ID, currentTimeMillis(), BAD_MESSAGE.code(), BAD_MESSAGE.msg() + theBadMsg
             )
             raise
+        except DecodeError:
+            self.wrapper.error(
+                NO_VALID_ID, currentTimeMillis(), ERROR_DECODING_PROTOBUF.code(), ERROR_DECODING_PROTOBUF.msg()
+            )
 
     msgId2handleInfo = {
         IN.TICK_PRICE: HandleInfo(proc=processTickPriceMsg),
