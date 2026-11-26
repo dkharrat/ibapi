@@ -18,9 +18,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
 from ibapi.object_implem import Object
-from ibapi.const import UNSET_DOUBLE, UNSET_DECIMAL
+from ibapi.const import UNSET_DOUBLE, UNSET_DECIMAL, UNSET_INTEGER
 from ibapi.utils import decimalMaxString
 from ibapi.utils import floatMaxString
+from ibapi.utils import intMaxString
 
 class OrderAllocation(Object):
     def __init__(self):
@@ -79,6 +80,19 @@ class OrderState:
         self.warningText = ""
         self.completedTime = ""
         self.completedStatus = ""
+        self.averagePrice = UNSET_DOUBLE  # type: float
+        self.submittedQuantity = UNSET_DECIMAL
+        self.currentPrice = UNSET_DOUBLE  # type: float
+        self.brokerToClientAssignedNumber = ""
+        self.exchangeToFund = ""
+        self.recentSubmitModifyTime = ""
+        self.submitTime = ""
+        self.routingStrategy = ""
+        self.assignedTo = ""
+        self.trailingKey = ""
+        self.crossType = ""
+        self.ticketOwnerSession = ""
+        self.scaleProgress = UNSET_INTEGER
         
     def __str__(self):
         s = ("Status: %s, InitMarginBefore: %s, MaintMarginBefore: %s, EquityWithLoanBefore: %s, "
@@ -88,7 +102,8 @@ class OrderState:
              "InitMarginBeforeOutsideRTH: %s, MaintMarginBeforeOutsideRTH: %s, EquityWithLoanBeforeOutsideRTH: %s, "
              "InitMarginChangeOutsideRTH: %s, MaintMarginChangeOutsideRTH: %s, equityWithLoanChangeOutsideRTH: %s, "
              "InitMarginAfterOutsideRTH: %s, MaintMarginAfterOutsideRTH: %s, equityWithLoanAfterOutsideRTH: %s, "
-             "SuggestedSize: %s, RejectReason: %s, WarningText: %s, CompletedTime: %s, CompletedStatus: %s") % (
+             "SuggestedSize: %s, RejectReason: %s, WarningText: %s, CompletedTime: %s, CompletedStatus: %s, "
+             "AveragePrice: %s, SubmittedQuantity: %s, CurrentPrice: %s, BrokerToClientAssignedNumber: %s, ExchangeToFund: %s, RecentSubmitModifyTime: %s, SubmitTime: %s, RoutingStrategy: %s, AssignedTo: %s, TrailingKey: %s, CrossType: %s, TicketOwnerSession: %s, ScaleProgress: %s") % (
                 str(self.status),
                 str(self.initMarginBefore),
                 str(self.maintMarginBefore),
@@ -118,6 +133,19 @@ class OrderState:
                 str(self.warningText),
                 str(self.completedTime),
                 str(self.completedStatus),
+                floatMaxString(self.averagePrice),
+                decimalMaxString(self.submittedQuantity),
+                floatMaxString(self.currentPrice),
+                str(self.brokerToClientAssignedNumber),
+                str(self.exchangeToFund),
+                str(self.recentSubmitModifyTime),
+                str(self.submitTime),
+                str(self.routingStrategy),
+                str(self.assignedTo),
+                str(self.trailingKey),
+                str(self.crossType),
+                str(self.ticketOwnerSession),
+                intMaxString(self.scaleProgress),
             )
         
 

@@ -257,6 +257,7 @@ def decodeOrder(orderId: int, contractProto: ContractProto, orderProto: OrderPro
     if orderProto.HasField('conditionsIgnoreRth'): order.conditionsIgnoreRth = orderProto.conditionsIgnoreRth
     if orderProto.HasField('conditionsCancelOrder'): order.conditionsCancelOrder = orderProto.conditionsCancelOrder
     if orderProto.HasField('conditionsIncludeOvernight'): order.conditionsIncludeOvernight = orderProto.conditionsIncludeOvernight
+    if orderProto.HasField('conditionsIncludeEarly'): order.conditionsIncludeEarly = orderProto.conditionsIncludeEarly
 
     if orderProto.HasField('adjustedOrderType'): order.adjustedOrderType = orderProto.adjustedOrderType
     if orderProto.HasField('triggerPrice'): order.triggerPrice = orderProto.triggerPrice
@@ -286,6 +287,7 @@ def decodeOrder(orderId: int, contractProto: ContractProto, orderProto: OrderPro
     if orderProto.HasField('professionalCustomer'): order.professionalCustomer = orderProto.professionalCustomer
     if orderProto.HasField('bondAccruedInterest'): order.bondAccruedInterest = orderProto.bondAccruedInterest
     if orderProto.HasField('includeOvernight'): order.includeOvernight = orderProto.includeOvernight
+    if orderProto.HasField('includeEarly'): order.includeEarly = orderProto.includeEarly
     if orderProto.HasField('extOperator'): order.extOperator = orderProto.extOperator
     if orderProto.HasField('manualOrderIndicator'): order.manualOrderIndicator = orderProto.manualOrderIndicator
     if orderProto.HasField('submitter'): order.submitter = orderProto.submitter
@@ -460,6 +462,19 @@ def decodeOrderState(orderStateProto: OrderStateProto) -> OrderState:
 
     if orderStateProto.HasField('completedTime'): orderState.completedTime = orderStateProto.completedTime
     if orderStateProto.HasField('completedStatus'): orderState.completedStatus = orderStateProto.completedStatus
+    if orderStateProto.HasField('averagePrice'): orderState.averagePrice = orderStateProto.averagePrice
+    if orderStateProto.HasField('submittedQuantity'): orderState.submittedQuantity = Decimal(orderStateProto.submittedQuantity)
+    if orderStateProto.HasField('currentPrice'): orderState.currentPrice = orderStateProto.currentPrice
+    if orderStateProto.HasField('brokerToClientAssignedNumber'): orderState.brokerToClientAssignedNumber = orderStateProto.brokerToClientAssignedNumber
+    if orderStateProto.HasField('exchangeToFund'): orderState.exchangeToFund = orderStateProto.exchangeToFund
+    if orderStateProto.HasField('recentSubmitModifyTime'): orderState.recentSubmitModifyTime = orderStateProto.recentSubmitModifyTime
+    if orderStateProto.HasField('submitTime'): orderState.submitTime = orderStateProto.submitTime
+    if orderStateProto.HasField('routingStrategy'): orderState.routingStrategy = orderStateProto.routingStrategy
+    if orderStateProto.HasField('assignedTo'): orderState.assignedTo = orderStateProto.assignedTo
+    if orderStateProto.HasField('trailingKey'): orderState.trailingKey = orderStateProto.trailingKey
+    if orderStateProto.HasField('crossType'): orderState.crossType = orderStateProto.crossType
+    if orderStateProto.HasField('ticketOwnerSession'): orderState.ticketOwnerSession = orderStateProto.ticketOwnerSession
+    if orderStateProto.HasField('scaleProgress'): orderState.scaleProgress = orderStateProto.scaleProgress
 
     return orderState
 

@@ -203,7 +203,8 @@ class Order(Object):
         self.conditions = []  # std::vector<std::shared_ptr<OrderCondition>>
         self.conditionsCancelOrder = False
         self.conditionsIgnoreRth = False
-        self.conditionsIncludeOvernight = False
+        self.conditionsIncludeOvernight = False  # deprecated, use conditionsIncludeEarly
+        self.conditionsIncludeEarly = False
 
         # ext operator
         self.extOperator = ""
@@ -244,7 +245,8 @@ class Order(Object):
         self.customerAccount = ""
         self.professionalCustomer = False
         self.bondAccruedInterest = ""
-        self.includeOvernight = False
+        self.includeOvernight = False  # deprecated, use includeEarly
+        self.includeEarly = False
         self.manualOrderIndicator = UNSET_INTEGER
         self.submitter = ""
         self.postOnly = False
