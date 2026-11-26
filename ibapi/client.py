@@ -162,7 +162,8 @@ from ibapi.server_versions import (
     MIN_SERVER_VER_CONFIG,
     MIN_SERVER_VER_UPDATE_CONFIG,
     MIN_SERVER_VER_HEDGE_MAX_SIZE,
-    UNIFIED_VERSION_COND_ORDER_WITH_OVERNIGHT_PARAM
+    UNIFIED_VERSION_COND_ORDER_WITH_OVERNIGHT_PARAM,
+    UNIFIED_VERSION_EARLY_SESSION
 )
 
 from ibapi.utils import ClientException, log_
@@ -2847,6 +2848,12 @@ class EClient(object):
         if self.serverVersion() < UNIFIED_VERSION_COND_ORDER_WITH_OVERNIGHT_PARAM:
             if order.HasField('conditionsIncludeOvernight'):
                 return "conditionsIncludeOvernight"
+
+        if self.serverVersion() < UNIFIED_VERSION_EARLY_SESSION:
+            if order.HasField('includeEarly'):
+                return "includeEarly"
+            if order.HasField('conditionsIncludeEarly'):
+                return "conditionsIncludeEarly"
 
         return None
 

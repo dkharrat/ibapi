@@ -133,5 +133,8 @@ TickTypeEnum = Enum(
     "ODD_LOT_ASK_SIZE",
     "ODD_LOT_BID_EXCH",
     "ODD_LOT_ASK_EXCH",
+    "NOT_USED",
+    "COMBO_IMPLIED_BID",
+    "COMBO_IMPLIED_ASK",
     "NOT_SET",
 )

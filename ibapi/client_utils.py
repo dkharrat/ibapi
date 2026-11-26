@@ -347,6 +347,7 @@ def createOrderProto(order: Order) -> OrderProto:
     if order.conditionsCancelOrder: orderProto.conditionsCancelOrder = order.conditionsCancelOrder
     if order.conditionsIgnoreRth: orderProto.conditionsIgnoreRth = order.conditionsIgnoreRth
     if order.conditionsIncludeOvernight: orderProto.conditionsIncludeOvernight = order.conditionsIncludeOvernight
+    if order.conditionsIncludeEarly: orderProto.conditionsIncludeEarly = order.conditionsIncludeEarly
 
     if order.modelCode: orderProto.modelCode = order.modelCode
     if order.extOperator: orderProto.extOperator = order.extOperator
@@ -376,6 +377,7 @@ def createOrderProto(order: Order) -> OrderProto:
     if order.professionalCustomer: orderProto.professionalCustomer = order.professionalCustomer
     if order.bondAccruedInterest: orderProto.bondAccruedInterest = order.bondAccruedInterest
     if order.includeOvernight: orderProto.includeOvernight = order.includeOvernight
+    if order.includeEarly: orderProto.includeEarly = order.includeEarly
     if isValidIntValue(order.manualOrderIndicator): orderProto.manualOrderIndicator = order.manualOrderIndicator
     if order.submitter: orderProto.submitter = order.submitter
     if order.autoCancelParent: orderProto.autoCancelParent = order.autoCancelParent
